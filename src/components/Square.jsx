@@ -1,10 +1,10 @@
-import React from 'react'
-import '../styles/Square.css'
+import React from "react";
+import "../styles/Square.css";
 
-function Square({pieceType, colorClass, position}) {
+function Square({ type, position }) {
   return (
-    <div className={`tile ${pieceType} ${colorClass} square-${position}`}></div>
-  )
+    <div draggable="false" className={`tile ${type} square-${position}`}></div>
+  );
 }
 
-export default Square
+export default Square;

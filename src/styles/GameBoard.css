@@ -1,25 +1,25 @@
 .chessboard {
-    display: grid;
-    grid-template-columns: repeat(8, 100px);
-    grid-template-rows: repeat(8, 100px);
-    width: 800px;
-    height: 800px;
-    background-size: 800px;
-    border-radius: 10px;
-    position: relative;
+  display: grid;
+  grid-template-columns: repeat(8, 100px);
+  grid-template-rows: repeat(8, 100px);
+  width: 800px;
+  height: 800px;
+  background-size: 800px;
+  border-radius: 10px;
+  position: relative;
 }
 
 .chessboard::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url('/images/board/svg/newspaper.svg');
-    background-size: 800px;
-    background-repeat: no-repeat;
-    opacity: 0.8;
-    border-radius: 10px;
-    z-index: -1;
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("/images/board/svg/newspaper.svg");
+  background-size: 800px;
+  background-repeat: no-repeat;
+  opacity: 0.8;
+  border-radius: 10px;
+  z-index: -1;
 }
