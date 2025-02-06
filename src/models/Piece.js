@@ -81,6 +81,7 @@ export class Rook extends Piece {
         let valid_moves = [];
         let attack_moves = [];
         const [startRow, startCol] = position;
+        console.log(position)
         const checkDirection = [
             [1, 0], // Down
             [-1, 0], // Up
@@ -90,9 +91,13 @@ export class Rook extends Piece {
         checkDirection.forEach(([dRow, dCol]) => {
             let r = dRow+startRow;
             let c = dCol+startCol;
-            while (dCol > 0 && dCol < 9 && dRow > 0 && dRow < 9) {
-                let new_pos = r * 8 + c;
-                if (board[new_pos] === ".") {
+            console.log("Check New")
+            console.log(r)
+            console.log(c)
+            while (c > 0 && c < 9 && r > 0 && r < 9) {
+                let new_pos = (r-1) * 8 + c;
+                console.log(new_pos)
+                if (board[new_pos-1] === ".") {
                     valid_moves.push(new_pos);
                 } else {
                     break;
@@ -101,6 +106,7 @@ export class Rook extends Piece {
                 c += dCol;
             }
         });
+        console.log(valid_moves)
         return [valid_moves, attack_moves];
     }
 }
@@ -131,25 +137,32 @@ export class Knight extends Piece {
     }
 
     validMoves(board, position) {
+        const [startRow, startCol] = position;
         let valid_moves = []
-        let true_pos = position-1
+        let attack_moves = []
         const possibleMoves = [
-            true_pos-6,
-            true_pos-10,
-            true_pos-15,
-            true_pos-17,
-            true_pos+6,
-            true_pos+10,
-            true_pos+15,
-            true_pos+17,
+            [startRow-2, startCol-1],
+            [startRow-2, startCol+1],
+            [startRow+2, startCol-1],
+            [startRow+2, startCol+1],
+            [startRow-1, startCol-2],
+            [startRow-1, startCol+2],
+            [startRow+1, startCol-2],
+            [startRow+1, startCol+2],
         ];
 
-        possibleMoves.forEach((pos) => {
-            if (board[pos] === ".") {
-                valid_moves.push(pos+1);
+        possibleMoves.forEach(([row, col]) => {
+            if (row > 0 && row < 9 && col > 0 && col < 9) {
+                let new_pos = (row-1) * 8 + col;
+                if (new_pos < 64 && new_pos > 0 && board[new_pos-1] === ".") {
+                    console.log(board[new_pos-1])
+                    valid_moves.push(new_pos);
+                    console.log(new_pos+1)
+                }
             }
         });
-        return valid_moves
+        console.log(valid_moves)
+        return [valid_moves, attack_moves]
     }
 }
 

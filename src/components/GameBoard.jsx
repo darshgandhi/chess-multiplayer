@@ -72,6 +72,7 @@ function GameBoard() {
         const [nameClass, position] = selected.className.split("-");
         let piece = boardClass.board[position-1];
         let [valid_moves, attack_moves] = piece.validMoves(boardClass.board, getRowCol(position));
+        console.log(valid_moves)
         let moveable_squares = []
         for(let i = 0; i < valid_moves.length; i++) {
           moveable_squares.push(<MoveableSquare position={valid_moves[i]}/>)
