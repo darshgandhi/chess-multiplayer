@@ -3,6 +3,7 @@ import "../styles/GameBoard.css";
 import { Board } from "../models/Board.js";
 import Square from "./Square.jsx";
 import HoverSquare from "./HoverSquare.jsx";
+import { Chess } from "chess.js";
 
 function GameBoard() {
   // Hooks
@@ -66,9 +67,25 @@ function GameBoard() {
 
   useEffect(() => {
     updateBoard(board);
-    console.log(board);
     setTurn(board.turn);
   }, [fen]);
+
+  useEffect(() => {
+    if (turn == "b") {
+      const chess = new Chess(fen);
+      const moves = chess.moves();
+      if (moves.length === 0) {
+        setBoard(new Board(fen));
+      }
+      let randomMove = moves[Math.floor(Math.random() * moves.length)];
+      chess.move(randomMove);
+      console.log(chess.fen());
+      setTimeout(() => {
+        setFen(chess.fen());
+        setBoard(new Board(chess.fen()));
+      }, 1000);
+    }
+  }, [turn]);
 
   useEffect(() => {
     if (
@@ -91,6 +108,8 @@ function GameBoard() {
         board.board,
         getRowCol(tile_pos)
       );
+      console.log(attack_moves);
+      console.log(valid_moves);
       setAttackMoves(attack_moves);
       setValidMovesList(valid_moves);
     }

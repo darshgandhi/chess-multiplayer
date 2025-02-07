@@ -74,13 +74,15 @@ export class Pawn extends Piece {
         board[position + 8].color == 0 &&
         position + 8 < 64
       ) {
+        console.log("here");
         attack_moves.push(position + 9);
       }
       if (
         board[position + 6] !== "." &&
-        board[position + 6].color == 1 &&
+        board[position + 6].color == 0 &&
         position - 8 > 0
       ) {
+        console.log(position);
         attack_moves.push(position + 7);
       }
     }
