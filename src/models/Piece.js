@@ -44,9 +44,9 @@ export class Pawn extends Piece {
     if (this.color == 0) {
       if (board[position - 9] === "." && position - 8 > 0) {
         valid_moves.push(position - 8);
-      }
-      if (board[position - 17] === "." && position > 48 && position < 57) {
-        valid_moves.push(position - 16);
+        if (board[position - 17] === "." && position > 48 && position < 57) {
+          valid_moves.push(position - 16);
+        }
       }
       if (
         board[position - 10] !== "." &&
@@ -65,16 +65,15 @@ export class Pawn extends Piece {
     } else {
       if (board[position + 7] === "." && position + 8 < 64) {
         valid_moves.push(position + 8);
-      }
-      if (board[position + 15] === "." && position > 8 && position < 17) {
-        valid_moves.push(position + 16);
+        if (board[position + 15] === "." && position > 8 && position < 17) {
+          valid_moves.push(position + 16);
+        }
       }
       if (
         board[position + 8] !== "." &&
         board[position + 8].color == 0 &&
         position + 8 < 64
       ) {
-        console.log("here");
         attack_moves.push(position + 9);
       }
       if (
@@ -82,7 +81,6 @@ export class Pawn extends Piece {
         board[position + 6].color == 0 &&
         position - 8 > 0
       ) {
-        console.log(position);
         attack_moves.push(position + 7);
       }
     }

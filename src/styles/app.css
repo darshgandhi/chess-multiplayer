@@ -1,19 +1,22 @@
 .main-div {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: transparent;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: transparent;
+  font-family: Oxygen, sans-serif;
+  height: 80vh;
 }
 
 h1 {
-    font-size: 2rem;
+  font-size: 2rem;
 }
 
 .display-board {
-    background-color: transparent;
-    border-style: solid;
-    border-width: 5px;
-    border-radius: 16px;
-    margin: 1rem;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  background-color: transparent;
+  border-style: solid;
+  border-width: 5px;
+  border-radius: 16px;
+  margin: 1rem;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
 }

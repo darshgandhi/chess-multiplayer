@@ -1,8 +1,10 @@
 import { Pawn, Rook, Knight, King, Queen, Bishop } from "./Piece.js";
 
 export class Board {
-  constructor(pos) {
-    this.fen = pos;
+  constructor(
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+  ) {
+    this.fen = fen;
     [
       this.fen_pos,
       this.turn,
@@ -140,7 +142,19 @@ export class Board {
   }
 
   movePiece(start, end) {
+    let piece = this.board[end];
     this.board[end] = this.board[start];
     this.board[start] = ".";
+    if (piece !== ".") {
+      const pieceTypeMap = {
+        Pawn: 1,
+        Rook: 5,
+        Knight: 3,
+        Bishop: 3,
+        Queen: 9,
+        King: 0,
+      };
+      return pieceTypeMap[piece.type];
+    }
   }
 }
