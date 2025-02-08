@@ -1,5 +1,5 @@
 import { Pawn, Rook, Knight, King, Queen, Bishop } from "./Piece.js";
-
+import { getRowCol } from "../Utils/gameLogic.jsx";
 export class Board {
   constructor(
     fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
@@ -82,6 +82,10 @@ export class Board {
       }
     }
 
+    if (blank !== 0) {
+      fen_pos += blank;
+    }
+
     this.fen_pos = fen_pos;
 
     if (this.turn == "w") {
@@ -136,15 +140,14 @@ export class Board {
     } else {
       this.halfmove += 1;
     }
-
     this.fen = `${this.fen_pos} ${this.turn} ${this.castling} ${this.enpassant} ${this.halfmove} ${this.fullmove}`;
     return this.fen;
   }
-
   movePiece(start, end) {
     let piece = this.board[end];
-    this.board[end] = this.board[start];
+    let oPiece = this.board[start];
     this.board[start] = ".";
+    this.board[end] = oPiece;
     if (piece !== ".") {
       const pieceTypeMap = {
         Pawn: 1,
@@ -156,5 +159,134 @@ export class Board {
       };
       return pieceTypeMap[piece.type];
     }
+  }
+
+  getKingPos() {
+    let positions = [];
+    let piece = null;
+    for (let i = 0; i < 64; i++) {
+      piece = this.board[i];
+      if (piece.type == "King") {
+        positions.push(i);
+        if (positions.length == 2) {
+          return positions;
+        }
+      }
+    }
+  }
+
+  inCheck() {
+    let positions = this.getKingPos();
+    let piece = null;
+    for (let i = 0; i < 64; i++) {
+      piece = this.board[i];
+      if (piece !== ".") {
+        let attack_moves = piece.validMoves(this.board, getRowCol(i + 1))[1];
+        if (attack_moves.length > 0) {
+          if (attack_moves.includes(positions[0] + 1)) {
+            return [true, positions[0]];
+          } else if (attack_moves.includes(positions[1] + 1)) {
+            return [true, positions[1]];
+          }
+        }
+      }
+    }
+    return [false, null];
+  }
+
+  allLegalMoves() {
+    const legal_moves = new Map();
+    for (let i = 0; i < 64; i++) {
+      let piece = this.board[i];
+      if (piece !== ".") {
+        let [valid_moves, attack_moves] = piece.validMoves(
+          this.board,
+          getRowCol(i + 1)
+        );
+        let moves = [...valid_moves, ...attack_moves];
+        if (moves.length > 0) {
+          legal_moves.set(piece, [i + 1, moves]);
+        }
+      }
+    }
+    return legal_moves;
+  }
+
+  safeKingMoves(position) {
+    const safe_moves = new Map();
+    let king = this.board[position];
+    let [valid_moves, attack_moves] = king.validMoves(
+      this.board,
+      getRowCol(position + 1)
+    );
+    for (let i = 0; i < attack_moves.length; i++) {
+      let oPiece = this.board[position];
+      let mPiece = this.board[attack_moves[i] - 1];
+      this.board[position] = ".";
+      this.board[attack_moves[i] - 1] = oPiece;
+      let inCheck = !this.inCheck()[0];
+      this.board[position] = oPiece;
+      this.board[attack_moves[i] - 1] = mPiece;
+      if (inCheck) {
+        safe_moves.set(king, [[attack_moves[i], "A"]]);
+      }
+    }
+    for (let i = 0; i < valid_moves.length; i++) {
+      let oPiece = this.board[position];
+      let mPiece = this.board[valid_moves[i] - 1];
+      this.board[position] = ".";
+      this.board[valid_moves[i] - 1] = oPiece;
+      let inCheck = !this.inCheck()[0];
+      this.board[position] = oPiece;
+      this.board[valid_moves[i] - 1] = mPiece;
+      if (inCheck) {
+        safe_moves.set(king, [[attack_moves[i], "M"]]);
+      }
+    }
+    if (safe_moves.size == 0) {
+      let allMoves = Array.from(this.allLegalMoves());
+      for (let i = 0; i < allMoves.length; i++) {
+        let piece = allMoves[i][0];
+        let legal_moves = allMoves[i][1];
+        for (let j = 0; j < legal_moves[1].length; j++) {
+          if (piece.color == king.color) {
+            let oPiece = this.board[legal_moves[0] - 1];
+            let mPiece = this.board[legal_moves[1][j] - 1];
+            this.board[legal_moves[0] - 1] = ".";
+            this.board[legal_moves[1][j] - 1] = oPiece;
+            if (legal_moves[1][j] - 1 !== position && !this.inCheck()[0]) {
+              this.board[legal_moves[0] - 1] = oPiece;
+              this.board[legal_moves[1][j] - 1] = mPiece;
+              if (this.board[legal_moves[1][j] - 1] !== ".") {
+                if (!safe_moves.has(piece)) {
+                  safe_moves.set(piece, [[legal_moves[1][j], "A"]]);
+                } else {
+                  safe_moves.get(piece).push([legal_moves[1][j], "A"]);
+                }
+              } else {
+                if (!safe_moves.has(piece)) {
+                  safe_moves.set(piece, [[legal_moves[1][j], "M"]]);
+                } else {
+                  safe_moves.get(piece).push([legal_moves[1][j], "M"]);
+                }
+              }
+            } else {
+              this.board[legal_moves[0] - 1] = oPiece;
+              this.board[legal_moves[1][j] - 1] = mPiece;
+            }
+          }
+        }
+      }
+    }
+    return safe_moves;
+  }
+
+  copyBoard() {
+    return this.board.map((piece) => {
+      if (piece === ".") return ".";
+      const pieceCopy = Object.create(Object.getPrototypeOf(piece));
+      Object.assign(pieceCopy, piece);
+      return pieceCopy;
+    });
   }
 }

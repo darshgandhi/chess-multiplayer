@@ -257,7 +257,6 @@ export class Bishop extends Piece {
         c += dCol;
       }
     });
-    console.log(valid_moves, attack_moves);
     return [valid_moves, attack_moves];
   }
 }

@@ -29,6 +29,7 @@ export default function gameContext() {
   // Moves Lists
   const [validMovesList, setValidMovesList] = useState([]);
   const [attackMoves, setAttackMoves] = useState([]);
+  const [safeMoves, setSafeMoves] = useState([]);
 
   // Mouse Tracking
   const [tilePosition, setTilePosition] = useState(null);
@@ -81,7 +82,6 @@ export default function gameContext() {
   }, []);
 
   // Logic
-
   useEffect(() => {
     if (fen) {
       setBoard(new Board(fen));
@@ -91,8 +91,16 @@ export default function gameContext() {
   }, [fen]);
 
   useEffect(() => {
-    setVisualBoard(updateBoard(board));
-    setTurn(board.turn);
+    if (board) {
+      let [inCheck, position] = board.inCheck(board.board);
+      if (inCheck) {
+        console.log("King Under Attack");
+        let safe_moves = board.safeKingMoves(position);
+        setSafeMoves(Array.from(safe_moves));
+      }
+      setVisualBoard(updateBoard(board));
+      setTurn(board.turn);
+    }
   }, [board]);
 
   useEffect(() => {
@@ -122,19 +130,44 @@ export default function gameContext() {
         />
       );
       let piece = board.board[tile_pos - 1];
-      let [valid_moves, attack_moves] = piece.validMoves(
-        board.board,
-        getRowCol(tile_pos)
-      );
-      console.log(" ");
-      console.log("Selected Piece: ", piece);
-      console.log("Attack Moves: ", attack_moves);
-      console.log("Valid Moves: ", valid_moves);
-      setAttackMoves(attack_moves);
-      setValidMovesList(valid_moves);
+      if (safeMoves.length > 0) {
+        console.log(safeMoves);
+        let valid_moves = [];
+        let attack_moves = [];
+        for (let i = 0; i < safeMoves.length; i++) {
+          if (safeMoves[i][0] === piece) {
+            for (let j = 0; j < safeMoves[i][1].length; j++) {
+              console.log(safeMoves[i][1][j]);
+              if (safeMoves[i][1][j][1] === "A") {
+                attack_moves.push(safeMoves[i][1][j][0]);
+              } else {
+                valid_moves.push(safeMoves[i][1][j][0]);
+              }
+            }
+          }
+        }
+        console.log(" ");
+        console.log("Selected Piece: ", piece);
+        console.log("Attack Moves: ", valid_moves);
+        console.log("Valid Moves: ", attack_moves);
+        setAttackMoves(attack_moves);
+        setValidMovesList(valid_moves);
+      } else {
+        let [valid_moves, attack_moves] = piece.validMoves(
+          board.board,
+          getRowCol(tile_pos)
+        );
+        console.log(" ");
+        console.log("Selected Piece: ", piece);
+        console.log("Attack Moves: ", valid_moves);
+        console.log("Valid Moves: ", attack_moves);
+        setAttackMoves(attack_moves);
+        setValidMovesList(valid_moves);
+      }
     }
   }, [selected]);
 
+  // Show Movable Locations
   useEffect(() => {
     if (attackMoves && validMovesList) {
       let moveable_squares = [];
@@ -166,6 +199,7 @@ export default function gameContext() {
     }
   }, [tilePosition]);
 
+  // Handle Attacks & Moves
   useEffect(() => {
     if (board) {
       if (attackMoves.includes(moveToPiece)) {
@@ -180,6 +214,7 @@ export default function gameContext() {
         setMoveableSquares([]);
         setAttackMoves([]);
         setValidMovesList([]);
+        setSafeMoves([]);
       } else if (validMovesList.includes(moveToPiece)) {
         setPoint(
           board.movePiece(
@@ -192,6 +227,7 @@ export default function gameContext() {
         setMoveableSquares([]);
         setAttackMoves([]);
         setValidMovesList([]);
+        setSafeMoves([]);
       }
     }
   }, [moveToPiece]);
