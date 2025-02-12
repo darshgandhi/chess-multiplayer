@@ -14,6 +14,17 @@ export function getTilePosition(e, tilePosition) {
   return tilePosition;
 }
 
+export const generateMoveableSquares = (attackMoves, validMovesList) => {
+  return [
+    ...attackMoves.map((pos) => (
+      <Square type={"attackable"} position={pos} key={`attack-square-${pos}`} />
+    )),
+    ...validMovesList.map((pos) => (
+      <Square type={"hint"} position={pos} key={`hint-square-${pos}`} />
+    )),
+  ];
+};
+
 export function updateBoard(b) {
   const newVisualBoard = [];
   const pieceTypeMap = {

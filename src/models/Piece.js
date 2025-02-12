@@ -48,20 +48,24 @@ export class Pawn extends Piece {
           valid_moves.push(position - 16);
         }
       }
-      if (
-        board[position - 10] !== "." &&
-        board[position - 10].color == 1 &&
-        position - 8 > 0
-      ) {
-        attack_moves.push(position - 9);
-      }
-      if (
-        board[position - 8] !== "." &&
-        board[position - 8].color == 1 &&
-        position - 8 > 0
-      ) {
-        attack_moves.push(position - 7);
-      }
+      const possibleAttacks = [
+        [startRow - 1, startCol - 1],
+        [startRow - 1, startCol + 1],
+      ];
+
+      possibleAttacks.forEach(([row, col]) => {
+        if (row > 0 && row < 9 && col > 0 && col < 9) {
+          let new_pos = (row - 1) * 8 + col;
+          if (
+            new_pos < 64 &&
+            new_pos > 0 &&
+            board[new_pos - 1] !== "." &&
+            board[new_pos - 1].color !== board[position - 1].color
+          ) {
+            attack_moves.push(new_pos);
+          }
+        }
+      });
     } else {
       if (board[position + 7] === "." && position + 8 < 64) {
         valid_moves.push(position + 8);
@@ -69,20 +73,23 @@ export class Pawn extends Piece {
           valid_moves.push(position + 16);
         }
       }
-      if (
-        board[position + 8] !== "." &&
-        board[position + 8].color == 0 &&
-        position + 8 < 64
-      ) {
-        attack_moves.push(position + 9);
-      }
-      if (
-        board[position + 6] !== "." &&
-        board[position + 6].color == 0 &&
-        position - 8 > 0
-      ) {
-        attack_moves.push(position + 7);
-      }
+      const possibleAttacks = [
+        [startRow + 1, startCol - 1],
+        [startRow + 1, startCol + 1],
+      ];
+      possibleAttacks.forEach(([row, col]) => {
+        if (row > 0 && row < 9 && col > 0 && col < 9) {
+          let new_pos = (row - 1) * 8 + col;
+          if (
+            new_pos < 64 &&
+            new_pos > 0 &&
+            board[new_pos - 1] !== "." &&
+            board[new_pos - 1].color !== board[position - 1].color
+          ) {
+            attack_moves.push(new_pos);
+          }
+        }
+      });
     }
     return [valid_moves, attack_moves];
   }

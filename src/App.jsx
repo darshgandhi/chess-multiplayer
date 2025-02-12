@@ -4,14 +4,13 @@ import GameBoard from "./components/GameBoard";
 import ScoreBoard from "./components/ScoreBoard";
 
 function App() {
-  const [bScore, setBScore] = useState(0);
-  const [wScore, setWScore] = useState(0);
+  const [score, setScore] = useState(0);
   return (
     <>
       <div className="main-div">
-        <ScoreBoard bScore={bScore} wScore={wScore} />
+        <ScoreBoard bScore={score["black"]} wScore={score["white"]} />
         <div className="display-board">
-          <GameBoard setBScore={setBScore} setWScore={setWScore} />
+          <GameBoard setScore={setScore} />
         </div>
       </div>
     </>

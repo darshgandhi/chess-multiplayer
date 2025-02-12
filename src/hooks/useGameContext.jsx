@@ -2,6 +2,7 @@ import {
   getRowCol,
   updateBoard,
   getTilePosition,
+  generateMoveableSquares,
 } from "../Utils/gameLogic.jsx";
 import { useEffect, useState } from "react";
 import { Board } from "../models/Board.js";
@@ -9,11 +10,13 @@ import React from "react";
 import Square from "../components/Square.jsx";
 import HoverSquare from "../components/HoverSquare.jsx";
 
-export default function gameContext() {
+export default function useGameContext() {
   // Board
   const [fen, setFen] = useState();
   const [board, setBoard] = useState(new Board(fen));
   const [turn, setTurn] = useState(null);
+  const [fullMove, setFullMove] = useState(null);
+  const [halfMove, setHalfMove] = useState(null);
 
   // Board UI
   const [highlightedSquare, setHighlightedSquare] = useState(null);
@@ -29,7 +32,6 @@ export default function gameContext() {
   // Moves Lists
   const [validMovesList, setValidMovesList] = useState([]);
   const [attackMoves, setAttackMoves] = useState([]);
-  const [safeMoves, setSafeMoves] = useState([]);
 
   // Mouse Tracking
   const [tilePosition, setTilePosition] = useState(null);
@@ -38,8 +40,8 @@ export default function gameContext() {
 
   // Score
   const [point, setPoint] = useState(0);
-  const [bScore, setBScore] = useState(0);
-  const [wScore, setWScore] = useState(0);
+  const [score, setScore] = useState({ white: 0, black: 0 });
+  const [gameOver, setGameOver] = useState(false);
 
   // Handling Mouse Behaviours
   useEffect(() => {
@@ -70,15 +72,10 @@ export default function gameContext() {
 
   useEffect(() => {
     const chessboard = document.querySelector(".chessboard");
-    chessboard.addEventListener("dragstart", (e) => {
-      e.preventDefault(); // Prevent the drag behavior
-    });
+    const preventDrag = (e) => e.preventDefault();
 
-    return () => {
-      chessboard.removeEventListener("dragstart", (e) => {
-        e.preventDefault();
-      });
-    };
+    chessboard.addEventListener("dragstart", preventDrag);
+    return () => chessboard.removeEventListener("dragstart", preventDrag);
   }, []);
 
   // Logic
@@ -91,25 +88,34 @@ export default function gameContext() {
   }, [fen]);
 
   useEffect(() => {
-    if (board) {
-      let [inCheck, position] = board.inCheck(board.board);
-      if (inCheck) {
-        console.log("King Under Attack");
-        let safe_moves = board.safeKingMoves(position);
-        setSafeMoves(Array.from(safe_moves));
+    if (gameOver) {
+      setFen(null);
+      setScore({ white: 0, black: 0 });
+      setGameOver(false);
+    }
+  }, [gameOver]);
+
+  useEffect(() => {
+    if (board && !gameOver) {
+      let mate = board.checkMate();
+      if ((mate && fullMove && fullMove > 1) || (halfMove && halfMove == 50)) {
+        console.log("Game Over");
+        setGameOver(true);
       }
       setVisualBoard(updateBoard(board));
       setTurn(board.turn);
+      setFullMove(board.fullmove);
+      setHalfMove(board.halfmove);
     }
   }, [board]);
 
   useEffect(() => {
-    console.log("Turn: ", turn);
-  }, [turn]);
-
-  useEffect(() => {
     if (point) {
-      turn == "w" ? setWScore(wScore + point) : setBScore(bScore + point);
+      setScore((prev) => ({
+        ...prev,
+        [turn === "w" ? "white" : "black"]:
+          prev[turn === "w" ? "white" : "black"] + point,
+      }));
     }
   }, [point]);
 
@@ -130,67 +136,27 @@ export default function gameContext() {
         />
       );
       let piece = board.board[tile_pos - 1];
-      if (safeMoves.length > 0) {
-        console.log(safeMoves);
-        let valid_moves = [];
-        let attack_moves = [];
-        for (let i = 0; i < safeMoves.length; i++) {
-          if (safeMoves[i][0] === piece) {
-            for (let j = 0; j < safeMoves[i][1].length; j++) {
-              console.log(safeMoves[i][1][j]);
-              if (safeMoves[i][1][j][1] === "A") {
-                attack_moves.push(safeMoves[i][1][j][0]);
-              } else {
-                valid_moves.push(safeMoves[i][1][j][0]);
-              }
-            }
-          }
-        }
-        console.log(" ");
-        console.log("Selected Piece: ", piece);
-        console.log("Attack Moves: ", valid_moves);
-        console.log("Valid Moves: ", attack_moves);
-        setAttackMoves(attack_moves);
-        setValidMovesList(valid_moves);
-      } else {
-        let [valid_moves, attack_moves] = piece.validMoves(
-          board.board,
-          getRowCol(tile_pos)
-        );
-        console.log(" ");
-        console.log("Selected Piece: ", piece);
-        console.log("Attack Moves: ", valid_moves);
-        console.log("Valid Moves: ", attack_moves);
-        setAttackMoves(attack_moves);
-        setValidMovesList(valid_moves);
-      }
+      let [valid_moves, attack_moves] = piece.validMoves(
+        board.board,
+        getRowCol(tile_pos)
+      );
+      [valid_moves, attack_moves] = board.verifyMoves(
+        tile_pos,
+        valid_moves,
+        attack_moves
+      );
+      //console.log(" ");
+      //console.log("Selected Piece: ", piece);
+      //console.log("Valid Moves: ", valid_moves);
+      //console.log("Attack Moves: ", attack_moves);
+      setAttackMoves(attack_moves);
+      setValidMovesList(valid_moves);
     }
   }, [selected]);
 
   // Show Movable Locations
   useEffect(() => {
-    if (attackMoves && validMovesList) {
-      let moveable_squares = [];
-      for (let i = 0; i < attackMoves.length; i++) {
-        moveable_squares.push(
-          <Square
-            type={"attackable"}
-            position={attackMoves[i]}
-            key={`attack-square-${attackMoves[i]}`}
-          />
-        );
-      }
-      for (let i = 0; i < validMovesList.length; i++) {
-        moveable_squares.push(
-          <Square
-            type={"hint"}
-            position={validMovesList[i]}
-            key={`hint-square-${validMovesList[i]}`}
-          />
-        );
-      }
-      setMoveableSquares(moveable_squares);
-    }
+    setMoveableSquares(generateMoveableSquares(attackMoves, validMovesList));
   }, [attackMoves, validMovesList]);
 
   useEffect(() => {
@@ -214,7 +180,6 @@ export default function gameContext() {
         setMoveableSquares([]);
         setAttackMoves([]);
         setValidMovesList([]);
-        setSafeMoves([]);
       } else if (validMovesList.includes(moveToPiece)) {
         setPoint(
           board.movePiece(
@@ -227,7 +192,6 @@ export default function gameContext() {
         setMoveableSquares([]);
         setAttackMoves([]);
         setValidMovesList([]);
-        setSafeMoves([]);
       }
     }
   }, [moveToPiece]);
@@ -237,8 +201,8 @@ export default function gameContext() {
     moveableSquares,
     hoverSquare,
     visualBoard,
-    bScore,
-    wScore,
+    score,
+    gameOver,
     handleMouseDown: (e) => {
       setIsMouseDown(true);
       if (!e.target.classList.contains("chessboard")) {

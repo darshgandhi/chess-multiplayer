@@ -143,6 +143,7 @@ export class Board {
     this.fen = `${this.fen_pos} ${this.turn} ${this.castling} ${this.enpassant} ${this.halfmove} ${this.fullmove}`;
     return this.fen;
   }
+
   movePiece(start, end) {
     let piece = this.board[end];
     let oPiece = this.board[start];
@@ -212,75 +213,6 @@ export class Board {
     return legal_moves;
   }
 
-  safeKingMoves(position) {
-    const safe_moves = new Map();
-    let king = this.board[position];
-    let [valid_moves, attack_moves] = king.validMoves(
-      this.board,
-      getRowCol(position + 1)
-    );
-    for (let i = 0; i < attack_moves.length; i++) {
-      let oPiece = this.board[position];
-      let mPiece = this.board[attack_moves[i] - 1];
-      this.board[position] = ".";
-      this.board[attack_moves[i] - 1] = oPiece;
-      let inCheck = !this.inCheck()[0];
-      this.board[position] = oPiece;
-      this.board[attack_moves[i] - 1] = mPiece;
-      if (inCheck) {
-        safe_moves.set(king, [[attack_moves[i], "A"]]);
-      }
-    }
-    for (let i = 0; i < valid_moves.length; i++) {
-      let oPiece = this.board[position];
-      let mPiece = this.board[valid_moves[i] - 1];
-      this.board[position] = ".";
-      this.board[valid_moves[i] - 1] = oPiece;
-      let inCheck = !this.inCheck()[0];
-      this.board[position] = oPiece;
-      this.board[valid_moves[i] - 1] = mPiece;
-      if (inCheck) {
-        safe_moves.set(king, [[attack_moves[i], "M"]]);
-      }
-    }
-    if (safe_moves.size == 0) {
-      let allMoves = Array.from(this.allLegalMoves());
-      for (let i = 0; i < allMoves.length; i++) {
-        let piece = allMoves[i][0];
-        let legal_moves = allMoves[i][1];
-        for (let j = 0; j < legal_moves[1].length; j++) {
-          if (piece.color == king.color) {
-            let oPiece = this.board[legal_moves[0] - 1];
-            let mPiece = this.board[legal_moves[1][j] - 1];
-            this.board[legal_moves[0] - 1] = ".";
-            this.board[legal_moves[1][j] - 1] = oPiece;
-            if (legal_moves[1][j] - 1 !== position && !this.inCheck()[0]) {
-              this.board[legal_moves[0] - 1] = oPiece;
-              this.board[legal_moves[1][j] - 1] = mPiece;
-              if (this.board[legal_moves[1][j] - 1] !== ".") {
-                if (!safe_moves.has(piece)) {
-                  safe_moves.set(piece, [[legal_moves[1][j], "A"]]);
-                } else {
-                  safe_moves.get(piece).push([legal_moves[1][j], "A"]);
-                }
-              } else {
-                if (!safe_moves.has(piece)) {
-                  safe_moves.set(piece, [[legal_moves[1][j], "M"]]);
-                } else {
-                  safe_moves.get(piece).push([legal_moves[1][j], "M"]);
-                }
-              }
-            } else {
-              this.board[legal_moves[0] - 1] = oPiece;
-              this.board[legal_moves[1][j] - 1] = mPiece;
-            }
-          }
-        }
-      }
-    }
-    return safe_moves;
-  }
-
   copyBoard() {
     return this.board.map((piece) => {
       if (piece === ".") return ".";
@@ -288,5 +220,64 @@ export class Board {
       Object.assign(pieceCopy, piece);
       return pieceCopy;
     });
+  }
+
+  verifyMoves(start, valid_moves, attack_moves) {
+    let new_valid_moves = [];
+    let new_attack_moves = [];
+    for (let i = 0; i < valid_moves.length; i++) {
+      if (!this.resultsInCheck(start, valid_moves[i])) {
+        new_valid_moves.push(valid_moves[i]);
+      }
+    }
+    for (let i = 0; i < attack_moves.length; i++) {
+      if (!this.resultsInCheck(start, attack_moves[i])) {
+        new_attack_moves.push(attack_moves[i]);
+      }
+    }
+    return [new_valid_moves, new_attack_moves];
+  }
+
+  resultsInCheck(start, end) {
+    let original_start = this.board[start - 1];
+    let original_end = this.board[end - 1];
+    let color = null;
+    this.board[end - 1] = original_start;
+    this.board[start - 1] = ".";
+    let [checked, position] = this.inCheck();
+    if (position !== null) {
+      color = this.board[position].color;
+    }
+    this.board[end - 1] = original_end;
+    this.board[start - 1] = original_start;
+    if (
+      position !== null &&
+      checked &&
+      color !== null &&
+      color === (this.turn == "b" ? 1 : 0)
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  checkMate() {
+    let [checked, position, color] = this.inCheck();
+    if (checked) {
+      console.log("Checking Mate?");
+      let legal_moves = this.allLegalMoves();
+      for (let [piece, [position, moves]] of legal_moves) {
+        if (piece.color !== (this.turn === "b" ? 1 : 0)) continue;
+        for (let i = 0; i < moves.length; i++) {
+          if (!this.resultsInCheck(position, moves[i])) {
+            console.log(this.board);
+            console.log(piece, position, moves[i]);
+            return false;
+          }
+        }
+      }
+      return true;
+    }
+    return false;
   }
 }

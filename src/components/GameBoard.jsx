@@ -1,24 +1,22 @@
 import "../styles/GameBoard.css";
-import gameLogic from "../hooks/gameContext.jsx";
+import useGameContext from "../hooks/useGameContext.jsx";
 import { useEffect } from "react";
 
-function GameBoard({ setBScore, setWScore }) {
+function GameBoard({ setScore }) {
   const {
     highlightedSquare,
     moveableSquares,
     hoverSquare,
     visualBoard,
-    bScore,
-    wScore,
+    score,
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
-  } = gameLogic();
+  } = useGameContext();
 
   useEffect(() => {
-    setBScore(bScore);
-    setWScore(wScore);
-  }, [bScore, wScore, setBScore, setWScore]);
+    setScore(score);
+  }, [score, setScore]);
 
   return (
     <div
