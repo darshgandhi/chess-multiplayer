@@ -1,22 +1,117 @@
 .main-div {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr 2fr 1fr; /* Left (buttons) | Center (chessboard) | Right (scoreboard) */
+  grid-template-rows: 100px 100px 100px; /* Ensures even spacing for rows */
+  gap: 20px;
   background-color: transparent;
-  font-family: Oxygen, sans-serif;
-  height: 80vh;
+  font-family: "Atkinson Hyperlegible Mono", serif;
+  margin: auto;
+  margin-top: 20px;
+  height: 100vh;
+  width: fit-content;
+  justify-content: center;
+  align-items: start;
+  justify-items: center;
 }
 
 h1 {
   font-size: 2rem;
 }
 
-.display-board {
-  background-color: transparent;
-  border-style: solid;
-  border-width: 5px;
-  border-radius: 16px;
-  margin: 1rem;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+.scoreboard {
+  grid-column: 3;
+  grid-row: 1;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+}
+
+.chessboard {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+}
+
+.multiplayer-button,
+.ai-button,
+.minimax-button {
+  grid-column: 1;
+  width: 350px;
+  height: 100px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  letter-spacing: 1px;
+  font-size: 25px;
+  font-weight: 200;
+  text-transform: uppercase;
+  color: white;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(-60deg, var(--color5) 53%, var(--color4) 53%);
+}
+
+.resign-button {
+  grid-column: 3;
+  grid-row: 2;
+  margin-top: 30px;
+  width: 350px;
+  height: 100px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  letter-spacing: 1px;
+  font-size: 25px;
+  font-weight: 200;
+  text-transform: uppercase;
+  color: black;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(
+    -60deg,
+    rgba(255, 255, 255, 0.1) 53%,
+    rgb(250, 255, 255, 0.15) 53%
+  );
+}
+
+.multiplayer-button {
+  grid-row: 1;
+}
+.ai-button {
+  grid-row: 2;
+}
+.minimax-button {
+  grid-row: 3;
+}
+
+.multiplayer-button p::before,
+.ai-button p::before,
+.minimax-button p::before {
+  content: attr(data-title);
+  grid-column: 1;
+  background: transparent;
+}
+
+.multiplayer-button:hover,
+.ai-button:hover,
+.minimax-button:hover {
+  background: linear-gradient(
+    -60deg,
+    rgba(255, 255, 255, 0.1) 53%,
+    rgb(250, 255, 255, 0.15) 53%
+  );
+  font-weight: 500;
+  color: black;
+}
+
+.resign-button p::before {
+  content: attr(data-title);
+  grid-column: 1;
+  background: transparent;
+}
+
+.resign-button:hover {
+  background: rgb(250, 0, 0, 0.6);
+  font-weight: 500;
+  color: white;
 }

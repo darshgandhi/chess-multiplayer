@@ -13,7 +13,7 @@ import HoverSquare from "../components/HoverSquare.jsx";
 export default function useGameContext() {
   // Board
   const [fen, setFen] = useState();
-  const [board, setBoard] = useState(new Board(fen));
+  const [board, setBoard] = useState(new Board());
   const [turn, setTurn] = useState(null);
   const [fullMove, setFullMove] = useState(null);
   const [halfMove, setHalfMove] = useState(null);
@@ -89,7 +89,7 @@ export default function useGameContext() {
 
   useEffect(() => {
     if (gameOver) {
-      setFen(null);
+      setFen();
       setScore({ white: 0, black: 0 });
       setGameOver(false);
     }
@@ -136,19 +136,26 @@ export default function useGameContext() {
         />
       );
       let piece = board.board[tile_pos - 1];
-      let [valid_moves, attack_moves] = piece.validMoves(
-        board.board,
-        getRowCol(tile_pos)
-      );
+      let valid_moves = [],
+        attack_moves = [];
+      if (piece.type == "Pawn" && board.enpassant !== "-") {
+        console.log("here");
+        [valid_moves, attack_moves] = piece.validMoves(
+          board.board,
+          getRowCol(tile_pos),
+          board.enpassant
+        );
+      } else {
+        [valid_moves, attack_moves] = piece.validMoves(
+          board.board,
+          getRowCol(tile_pos)
+        );
+      }
       [valid_moves, attack_moves] = board.verifyMoves(
         tile_pos,
         valid_moves,
         attack_moves
       );
-      //console.log(" ");
-      //console.log("Selected Piece: ", piece);
-      //console.log("Valid Moves: ", valid_moves);
-      //console.log("Attack Moves: ", attack_moves);
       setAttackMoves(attack_moves);
       setValidMovesList(valid_moves);
     }
@@ -175,7 +182,7 @@ export default function useGameContext() {
             moveToPiece - 1
           )
         );
-        setFen(board.getFen());
+        setFen(board.getFen(true));
         setHighlightedSquare(null);
         setMoveableSquares([]);
         setAttackMoves([]);
@@ -187,7 +194,7 @@ export default function useGameContext() {
             moveToPiece - 1
           )
         );
-        setFen(board.getFen());
+        setFen(board.getFen(false));
         setHighlightedSquare(null);
         setMoveableSquares([]);
         setAttackMoves([]);

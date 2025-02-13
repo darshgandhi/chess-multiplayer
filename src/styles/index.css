@@ -1,17 +1,17 @@
 /* Import fonts and Tailwind */
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:ital,wght@0,200..800;1,200..800&family=DM+Serif+Text:ital@0;1&display=swap");
 @import "tailwindcss";
 
 /* Root variables for theme */
 :root {
-  --bg-color: #31363F;
+  --bg-color: #31363f;
 }
 
 /* Global body styles */
 body {
-  background-color: #8BC6EC;
+  background-color: #8bc6ec;
   background-repeat: no-repeat;
-  background-image: linear-gradient(0deg, #8BC6EC 0%, #9599E2 100%);
-  color: #1D1616;
+  background-image: linear-gradient(0deg, #8bc6ec 0%, #9599e2 100%);
+  color: #1d1616;
   font-family: "DM Serif Text", serif;
 }

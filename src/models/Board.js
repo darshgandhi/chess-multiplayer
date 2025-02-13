@@ -47,7 +47,7 @@ export class Board {
     return board;
   }
 
-  getFen(capture) {
+  getFen(capture, enpassant) {
     let fen_pos = "";
     let blank = 0;
     for (let i = 0; i < 64; i++) {
@@ -133,7 +133,7 @@ export class Board {
       }
     }
 
-    this.enpassant = "-"; // CODE THIS IN LATER
+    this.enpassant = this.enpassant; // CODE THIS IN LATER
 
     if (capture) {
       this.halfmove = 0;
@@ -141,6 +141,7 @@ export class Board {
       this.halfmove += 1;
     }
     this.fen = `${this.fen_pos} ${this.turn} ${this.castling} ${this.enpassant} ${this.halfmove} ${this.fullmove}`;
+    console.log(this.fen);
     return this.fen;
   }
 
@@ -149,6 +150,16 @@ export class Board {
     let oPiece = this.board[start];
     this.board[start] = ".";
     this.board[end] = oPiece;
+    this.enpassant = "-";
+    console.log(oPiece);
+    console.log(start, end, start - end);
+
+    // Handling en passant logic
+    if (oPiece.type == "Pawn" && Math.abs(start - end) == 16) {
+      const opponentColor = this.turn == 1 ? "w" : "b";
+    }
+
+    // Checking if piece was captured
     if (piece !== ".") {
       const pieceTypeMap = {
         Pawn: 1,
@@ -158,8 +169,16 @@ export class Board {
         Queen: 9,
         King: 0,
       };
-      return pieceTypeMap[piece.type];
+      return pieceTypeMap[piece.type]; // Return value of captured piece
     }
+  }
+
+  getAlgebraic(position) {
+    console.log(position);
+    let [row, col] = position;
+    let alp = String.fromCharCode(col + "a".charCodeAt(0));
+    let num = (8 - row + 1).toString();
+    return alp + num;
   }
 
   getKingPos() {
@@ -270,8 +289,6 @@ export class Board {
         if (piece.color !== (this.turn === "b" ? 1 : 0)) continue;
         for (let i = 0; i < moves.length; i++) {
           if (!this.resultsInCheck(position, moves[i])) {
-            console.log(this.board);
-            console.log(piece, position, moves[i]);
             return false;
           }
         }
