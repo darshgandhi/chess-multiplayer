@@ -36,16 +36,11 @@ export class Pawn extends Piece {
     return;
   }
 
-  validMoves(board, position, enpassant = null) {
+  validMoves(board, position) {
     const [startRow, startCol] = position;
     position = (startRow - 1) * 8 + startCol;
     let valid_moves = [];
     let attack_moves = [];
-    if (enpassant) {
-      let col = enpassant.charCodeAt(0) - "a".charCodeAt(0);
-      let row = 8 - parseInt(enpassant[1]);
-      attack_moves.push(row * 8 + col + 1);
-    }
     if (this.color == 0) {
       if (board[position - 9] === "." && position - 8 > 0) {
         valid_moves.push(position - 8);

@@ -11,39 +11,48 @@ import Square from "../components/Square.jsx";
 import HoverSquare from "../components/HoverSquare.jsx";
 
 export default function useGameContext() {
-  // Board
+  // ========================
+  // State Variables
+  // ========================
+
+  // Game Board State
   const [fen, setFen] = useState();
   const [board, setBoard] = useState(new Board());
   const [turn, setTurn] = useState(null);
   const [fullMove, setFullMove] = useState(null);
   const [halfMove, setHalfMove] = useState(null);
 
-  // Board UI
+  // UI State
   const [highlightedSquare, setHighlightedSquare] = useState(null);
   const [hoverSquare, setHoverSquare] = useState(null);
   const [moveableSquares, setMoveableSquares] = useState([]);
   const [visualBoard, setVisualBoard] = useState([]);
 
-  // Selected Squares
+  // Selection State
   const [selected, setSelected] = useState(null);
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [moveToPiece, setMoveToPiece] = useState(null);
 
-  // Moves Lists
+  // Moves State
   const [validMovesList, setValidMovesList] = useState([]);
   const [attackMoves, setAttackMoves] = useState([]);
+  const [specialMoves, setSpecialMoves] = useState([]);
 
-  // Mouse Tracking
+  // Mouse Tracking State
   const [tilePosition, setTilePosition] = useState(null);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isMouseDown, setIsMouseDown] = useState(false);
 
-  // Score
+  // Score State
   const [point, setPoint] = useState(0);
   const [score, setScore] = useState({ white: 0, black: 0 });
   const [gameOver, setGameOver] = useState(false);
 
-  // Handling Mouse Behaviours
+  // ========================
+  // Effect Hooks
+  // ========================
+
+  // Handle Global Mouse Up Event
   useEffect(() => {
     const handleMouseUpGlobal = (e) => {
       if (isMouseDown) {
@@ -62,31 +71,26 @@ export default function useGameContext() {
         setOffset({ x: 0, y: 0 });
       }
     };
-
     document.addEventListener("mouseup", handleMouseUpGlobal);
-
     return () => {
       document.removeEventListener("mouseup", handleMouseUpGlobal);
     };
   }, [isMouseDown, selected, tilePosition]);
 
+  // Prevent Dragging on Chessboard
   useEffect(() => {
     const chessboard = document.querySelector(".chessboard");
     const preventDrag = (e) => e.preventDefault();
-
     chessboard.addEventListener("dragstart", preventDrag);
     return () => chessboard.removeEventListener("dragstart", preventDrag);
   }, []);
 
-  // Logic
+  // Initialize Board from FEN
   useEffect(() => {
-    if (fen) {
-      setBoard(new Board(fen));
-    } else {
-      setBoard(new Board());
-    }
+    setBoard(fen ? new Board(fen) : new Board());
   }, [fen]);
 
+  // Reset Game on Game Over
   useEffect(() => {
     if (gameOver) {
       setFen();
@@ -95,10 +99,11 @@ export default function useGameContext() {
     }
   }, [gameOver]);
 
+  // Update Board State & Check for Checkmate
   useEffect(() => {
     if (board && !gameOver) {
       let mate = board.checkMate();
-      if ((mate && fullMove && fullMove > 1) || (halfMove && halfMove == 50)) {
+      if ((mate && fullMove && fullMove > 1) || (halfMove && halfMove === 50)) {
         console.log("Game Over");
         setGameOver(true);
       }
@@ -109,6 +114,7 @@ export default function useGameContext() {
     }
   }, [board]);
 
+  // Update Score when a Piece is Captured
   useEffect(() => {
     if (point) {
       setScore((prev) => ({
@@ -119,13 +125,9 @@ export default function useGameContext() {
     }
   }, [point]);
 
+  // Handle Piece Selection
   useEffect(() => {
-    if (
-      selected !== null &&
-      !selected.classList.contains("chessboard") &&
-      ((turn == "w" && selected.classList.contains("white")) ||
-        (turn == "b" && selected.classList.contains("black")))
-    ) {
+    if (selected) {
       let tile_pos = selected.className.split("-")[1];
       setSelectedPiece(selected);
       setHighlightedSquare(
@@ -136,20 +138,14 @@ export default function useGameContext() {
         />
       );
       let piece = board.board[tile_pos - 1];
-      let valid_moves = [],
-        attack_moves = [];
-      if (piece.type == "Pawn" && board.enpassant !== "-") {
-        console.log("here");
-        [valid_moves, attack_moves] = piece.validMoves(
-          board.board,
-          getRowCol(tile_pos),
-          board.enpassant
-        );
-      } else {
-        [valid_moves, attack_moves] = piece.validMoves(
-          board.board,
-          getRowCol(tile_pos)
-        );
+      let [valid_moves, attack_moves] = piece.validMoves(
+        board.board,
+        getRowCol(tile_pos)
+      );
+      if (piece.type === "Pawn" && board.enpassant !== "-") {
+        let col = enpassant.charCodeAt(0) - "a".charCodeAt(0);
+        let row = 8 - parseInt(enpassant[1]);
+        attack_moves.push(row * 8 + col + 1);
       }
       [valid_moves, attack_moves] = board.verifyMoves(
         tile_pos,
@@ -166,35 +162,20 @@ export default function useGameContext() {
     setMoveableSquares(generateMoveableSquares(attackMoves, validMovesList));
   }, [attackMoves, validMovesList]);
 
-  useEffect(() => {
-    if (isMouseDown) {
-      setHoverSquare(<HoverSquare position={tilePosition} />);
-    }
-  }, [tilePosition]);
-
   // Handle Attacks & Moves
   useEffect(() => {
     if (board) {
-      if (attackMoves.includes(moveToPiece)) {
+      if (
+        attackMoves.includes(moveToPiece) ||
+        validMovesList.includes(moveToPiece)
+      ) {
         setPoint(
           board.movePiece(
             selectedPiece.className.split("-")[1] - 1,
             moveToPiece - 1
           )
         );
-        setFen(board.getFen(true));
-        setHighlightedSquare(null);
-        setMoveableSquares([]);
-        setAttackMoves([]);
-        setValidMovesList([]);
-      } else if (validMovesList.includes(moveToPiece)) {
-        setPoint(
-          board.movePiece(
-            selectedPiece.className.split("-")[1] - 1,
-            moveToPiece - 1
-          )
-        );
-        setFen(board.getFen(false));
+        setFen(board.getFen(attackMoves.includes(moveToPiece)));
         setHighlightedSquare(null);
         setMoveableSquares([]);
         setAttackMoves([]);
@@ -203,6 +184,9 @@ export default function useGameContext() {
     }
   }, [moveToPiece]);
 
+  // ========================
+  // Return Context
+  // ========================
   return {
     highlightedSquare,
     moveableSquares,
@@ -212,9 +196,7 @@ export default function useGameContext() {
     gameOver,
     handleMouseDown: (e) => {
       setIsMouseDown(true);
-      if (!e.target.classList.contains("chessboard")) {
-        setSelected((prev) => (prev === e.target ? null : e.target));
-      }
+      setSelected((prev) => (prev === e.target ? null : e.target));
     },
     handleMouseMove: (e) => {
       setTilePosition(getTilePosition(e, tilePosition));
@@ -222,13 +204,9 @@ export default function useGameContext() {
     handleMouseUp: (e) => {
       setIsMouseDown(false);
       setHoverSquare(null);
-      if (selected !== null) {
-        setMoveToPiece(tilePosition);
-      }
-      if (selected === null || selected.classList.contains("chessboard")) {
-        setMoveableSquares([]);
-        setHighlightedSquare(null);
-      }
+      if (selected) setMoveToPiece(tilePosition);
+      setMoveableSquares([]);
+      setHighlightedSquare(null);
       setOffset({ x: 0, y: 0 });
     },
   };
