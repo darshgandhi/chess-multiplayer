@@ -36,7 +36,7 @@ export default function useGameContext() {
   // Moves State
   const [validMovesList, setValidMovesList] = useState([]);
   const [attackMoves, setAttackMoves] = useState([]);
-  const [specialMoves, setSpecialMoves] = useState([]);
+  const [specialMoves, setSpecialMoves] = useState({enpassant: null, castle: null});
 
   // Mouse Tracking State
   const [tilePosition, setTilePosition] = useState(null);
@@ -104,7 +104,6 @@ export default function useGameContext() {
     if (board && !gameOver) {
       let mate = board.checkMate();
       if ((mate && fullMove && fullMove > 1) || (halfMove && halfMove === 50)) {
-        console.log("Game Over");
         setGameOver(true);
       }
       setVisualBoard(updateBoard(board));
@@ -115,8 +114,9 @@ export default function useGameContext() {
   }, [board]);
 
   // Update Score when a Piece is Captured
-  useEffect(() => {
+  useEffect(() => { 
     if (point) {
+      console.log("adding point:" ,point)
       setScore((prev) => ({
         ...prev,
         [turn === "w" ? "white" : "black"]:
@@ -125,11 +125,23 @@ export default function useGameContext() {
     }
   }, [point]);
 
+  useEffect(() => { 
+    if (score) {
+      setPoint(0)
+    }
+  }, [score]);
+
   // Handle Piece Selection
   useEffect(() => {
-    if (selected) {
+    if (
+      selected !== null &&
+      !selected.classList.contains("chessboard") &&
+      ((turn == "w" && selected.classList.contains("white")) ||
+        (turn == "b" && selected.classList.contains("black")))
+    ) {
       let tile_pos = selected.className.split("-")[1];
       setSelectedPiece(selected);
+      console.log(selected)
       setHighlightedSquare(
         <Square
           type={"highlight"}
@@ -137,15 +149,39 @@ export default function useGameContext() {
           key={`highlight-square-${tile_pos}`}
         />
       );
+      console.log(tile_pos - 1)
       let piece = board.board[tile_pos - 1];
       let [valid_moves, attack_moves] = piece.validMoves(
         board.board,
         getRowCol(tile_pos)
       );
+      // ENSURE ENPASSANT OR CASTLE DONT RESULT IN CHECK AND IF IN CHECK DONT ALLOW CASTLING
       if (piece.type === "Pawn" && board.enpassant !== "-") {
-        let col = enpassant.charCodeAt(0) - "a".charCodeAt(0);
-        let row = 8 - parseInt(enpassant[1]);
+        let col = board.enpassant.charCodeAt(0) - "a".charCodeAt(0);
+        let row = 8 - parseInt(board.enpassant[1]);
         attack_moves.push(row * 8 + col + 1);
+        setSpecialMoves((prev) => ({ 
+          ...prev,
+          enpassant: (row * 8 + col + 1)
+        }));
+      } else if (piece.type === "King" && board.castling !== "-") {
+        let castle = [];
+        if (piece.color === 0 && board.castling.includes("K")) {
+          castle.push(63)
+        }
+        if (piece.color === 0 && board.castling.includes("Q")) {
+          castle.push(59)
+        }
+        if (piece.color === 1 && board.castling.includes("k")) {
+          castle.push(7)
+        }
+        if (piece.color === 1 && board.castling.includes("q")) {
+          castle.push(3)
+        }
+        setSpecialMoves((prev) => ({ 
+          ...prev,
+          castle: castle
+        }));
       }
       [valid_moves, attack_moves] = board.verifyMoves(
         tile_pos,
@@ -165,16 +201,28 @@ export default function useGameContext() {
   // Handle Attacks & Moves
   useEffect(() => {
     if (board) {
+      console.log(moveToPiece)
       if (
         attackMoves.includes(moveToPiece) ||
         validMovesList.includes(moveToPiece)
       ) {
-        setPoint(
-          board.movePiece(
-            selectedPiece.className.split("-")[1] - 1,
-            moveToPiece - 1
-          )
-        );
+        let p = board.movePiece(
+          selectedPiece.className.split("-")[1] - 1,
+          moveToPiece - 1,
+          specialMoves);
+        if (board.enpassant === "-" && specialMoves['enpassant']) {
+          setSpecialMoves((prev) => ({ 
+            ...prev,
+            enpassant: null
+          }));
+        }
+        if (specialMoves['castle']) {
+          setSpecialMoves((prev) => ({ 
+            ...prev,
+            castle: null
+          }));
+        }
+        setPoint(p);
         setFen(board.getFen(attackMoves.includes(moveToPiece)));
         setHighlightedSquare(null);
         setMoveableSquares([]);
@@ -195,6 +243,8 @@ export default function useGameContext() {
     score,
     gameOver,
     handleMouseDown: (e) => {
+      setMoveableSquares([]);
+      setHighlightedSquare(null);
       setIsMouseDown(true);
       setSelected((prev) => (prev === e.target ? null : e.target));
     },
@@ -205,8 +255,6 @@ export default function useGameContext() {
       setIsMouseDown(false);
       setHoverSquare(null);
       if (selected) setMoveToPiece(tilePosition);
-      setMoveableSquares([]);
-      setHighlightedSquare(null);
       setOffset({ x: 0, y: 0 });
     },
   };

@@ -47,7 +47,7 @@ export class Board {
     return board;
   }
 
-  getFen(capture, enpassant) {
+  getFen(capture) {
     let fen_pos = "";
     let blank = 0;
     for (let i = 0; i < 64; i++) {
@@ -99,31 +99,35 @@ export class Board {
       let board = this.board;
       let castling = "";
       castling +=
-        board[7].type == "Rook" &&
-        board[7].color == 1 &&
-        board[4].type == "King" &&
-        board[4].color == 1
-          ? "K"
-          : "";
-      castling +=
-        board[0].type == "Rook" &&
-        board[0].color == 1 &&
-        board[4].type == "King" &&
-        board[4].color == 1
-          ? "Q"
-          : "";
-      castling +=
         board[63].type == "Rook" &&
         board[63].color == 0 &&
         board[60].type == "King" &&
-        board[60].color == 0
-          ? "k"
+        board[60].color == 0 &&
+        this.castling.includes("K")
+          ? "K"
           : "";
       castling +=
         board[56].type == "Rook" &&
         board[56].color == 0 &&
         board[60].type == "King" &&
-        board[60].color == 0
+        board[60].color == 0 &&
+        this.castling.includes("Q")
+          ? "Q"
+          : "";
+      castling +=
+        board[7].type == "Rook" &&
+        board[7].color == 1 &&
+        board[4].type == "King" &&
+        board[4].color == 1 &&
+        this.castling.includes("k")
+          ? "k"
+          : "";
+      castling +=
+        board[0].type == "Rook" &&
+        board[0].color == 1 &&
+        board[4].type == "King" &&
+        board[4].color == 1 &&
+        this.castling.includes("q")
           ? "q"
           : "";
       if (castling == "") {
@@ -133,7 +137,7 @@ export class Board {
       }
     }
 
-    this.enpassant = this.enpassant; // CODE THIS IN LATER
+    this.enpassant = this.enpassant;
 
     if (capture) {
       this.halfmove = 0;
@@ -145,21 +149,53 @@ export class Board {
     return this.fen;
   }
 
-  movePiece(start, end) {
+  movePiece(start, end, specialMoves) {
     let piece = this.board[end];
-    let oPiece = this.board[start];
+    const oPiece = this.board[start];
     this.board[start] = ".";
     this.board[end] = oPiece;
     this.enpassant = "-";
-    console.log(oPiece);
-    console.log(start, end, start - end);
-
-    // Handling en passant logic
-    if (oPiece.type == "Pawn" && Math.abs(start - end) == 16) {
-      const opponentColor = this.turn == 1 ? "w" : "b";
+    // Handling Special Moves
+    if (specialMoves['enpassant'] && end === specialMoves['enpassant']-1) {
+      let ep_pos = specialMoves['enpassant']-1;
+      if (this.turn == "w") {
+        piece = this.board[ep_pos+8]
+        this.board[ep_pos+8] = ".";
+      } else {
+        piece = this.board[ep_pos-8]
+        this.board[ep_pos-8] = ".";
+      }
+    } else if (specialMoves['castle']) {
+      if (specialMoves['castle'].includes(end+1)) {
+        if(end-1 == 61) {
+          this.board[end-1] = this.board[63]
+          this.board[63] = "."
+        } else if (end+1 == 59) {
+          this.board[end+1] = this.board[56]
+          this.board[56] = "."
+        } else if (end+1 == 7) {
+          this.board[end-1] = this.board[7]
+          this.board[7] = "."
+        } else {
+          this.board[end+1] = this.board[0]
+          this.board[0] = "."
+        }
+      }
+    } else if (oPiece.type == "Pawn" && Math.abs(start - end) == 16) {
+      console.log(this.turn)
+      const opponentColor = this.turn == "b" ? 0 : 1;
+      const left_tile = this.board[end-1]
+      const right_tile = this.board[end+1]
+      if ((left_tile.type == "Pawn" && left_tile.color === opponentColor) || (right_tile.type == "Pawn" && right_tile.color === opponentColor)) {
+        if (opponentColor == 0) {
+          this.enpassant = this.getAlgebraic(end-8)
+        } else {
+          this.enpassant = this.getAlgebraic(end+8)
+        }
+      }
     }
-
     // Checking if piece was captured
+    console.log(piece)
     if (piece !== ".") {
       const pieceTypeMap = {
         Pawn: 1,
@@ -169,13 +205,17 @@ export class Board {
         Queen: 9,
         King: 0,
       };
+      console.log(pieceTypeMap[piece.type])
       return pieceTypeMap[piece.type]; // Return value of captured piece
+    } else {
+      console.log("here")
+      return 0;
     }
   }
-
+  
   getAlgebraic(position) {
     console.log(position);
-    let [row, col] = position;
+    let [row, col] = getRowCol(position);
     let alp = String.fromCharCode(col + "a".charCodeAt(0));
     let num = (8 - row + 1).toString();
     return alp + num;
@@ -281,20 +321,25 @@ export class Board {
   }
 
   checkMate() {
-    let [checked, position, color] = this.inCheck();
+    let [checked, position] = this.inCheck();
     if (checked) {
-      console.log("Checking Mate?");
+      let color = this.board[position]
+      console.log("Checking Mate?", color);
       let legal_moves = this.allLegalMoves();
       for (let [piece, [position, moves]] of legal_moves) {
+        console.log()
         if (piece.color !== (this.turn === "b" ? 1 : 0)) continue;
         for (let i = 0; i < moves.length; i++) {
           if (!this.resultsInCheck(position, moves[i])) {
+            console.log("Doesn't result in check")
+            console.log(position, moves[i])
             return false;
           }
         }
       }
       return true;
     }
+    // check for stale mate
     return false;
   }
 }

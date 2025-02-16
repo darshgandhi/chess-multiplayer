@@ -321,6 +321,22 @@ export class King extends Piece {
         }
       }
     });
+    if (this.color == 0 && startRow == 8 && startCol == 5) {
+      if (board[61] === "." && board[62] === "." && board[63] !== "." && board[63].type == "Rook") {
+        valid_moves.push(63)
+      }
+      if (board[59] === "." && board[58] === "." && board[57] === "." && board[56] !== "." && board[56].type == "Rook") {
+        valid_moves.push(59)
+      }
+    } else if (this.color == 1 && startRow == 1 && startCol == 5){
+      if (board[5] === "." && board[6] === "." && board[7] !== "." && board[7].type == "Rook") {
+        valid_moves.push(7)
+      }
+      if (board[1] === "." && board[2] === "." && board[3] === "." && board[0] !== "." && board[0].type == "Rook") {
+        valid_moves.push(3)
+      }
+    }
+    console.log(valid_moves)
     return [valid_moves, attack_moves];
   }
 }
