@@ -17,6 +17,34 @@
   pointer-events: none;
 }
 
+.promotion-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  background-color: white;
+  border: 2px solid black;
+  padding: 5px;
+  border-radius: 5px;
+}
+
+.promotion-choice {
+  width: 50px;
+  height: 50px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  cursor: pointer;
+  margin: 5px 0;
+}
+
+/* Assign background images */
+.promotion-choice.queen { background-image: url("/piece/governor/wQ.svg"); }
+.promotion-choice.rook { background-image: url("/piece/governor/wR.svg"); }
+.promotion-choice.bishop { background-image: url("/piece/governor/wB.svg"); }
+.promotion-choice.knight { background-image: url("/piece/governor/wN.svg"); }
+
 .highlight {
   background-color: rgba(144, 238, 144, 0.5);
 }

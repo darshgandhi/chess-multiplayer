@@ -3,22 +3,25 @@ import {
   updateBoard,
   getTilePosition,
   generateMoveableSquares,
+  handlePawnMoves,
+  handleCastling,
 } from "../Utils/gameLogic.jsx";
 import { useEffect, useState } from "react";
-import { Board } from "../models/Board.js";
+import { Board } from "../../server/models/Board.js";
 import React from "react";
 import Square from "../components/Square.jsx";
+import PromotePawn from "../components/PromotePawn.jsx";
 import HoverSquare from "../components/HoverSquare.jsx";
 
-export default function useGameContext() {
+export default function useGameContext({ fenProp, playerColor }) {
   // ========================
   // State Variables
   // ========================
 
   // Game Board State
-  const [fen, setFen] = useState();
+  const [fen, setFen] = useState(fenProp);
   const [board, setBoard] = useState(new Board());
-  const [turn, setTurn] = useState(null);
+  const [turn, setTurn] = useState();
   const [fullMove, setFullMove] = useState(null);
   const [halfMove, setHalfMove] = useState(null);
 
@@ -27,16 +30,19 @@ export default function useGameContext() {
   const [hoverSquare, setHoverSquare] = useState(null);
   const [moveableSquares, setMoveableSquares] = useState([]);
   const [visualBoard, setVisualBoard] = useState([]);
+  const [promoteBoard, setPromoteBoard] = useState();
 
   // Selection State
   const [selected, setSelected] = useState(null);
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [moveToPiece, setMoveToPiece] = useState(null);
+  const [promoteTo, setPromoteTo] = useState(null)
 
   // Moves State
   const [validMovesList, setValidMovesList] = useState([]);
   const [attackMoves, setAttackMoves] = useState([]);
   const [specialMoves, setSpecialMoves] = useState({enpassant: null, castle: null});
+  const [promotionState, setPromotionState] = useState({show: false, position: null, color: null})
 
   // Mouse Tracking State
   const [tilePosition, setTilePosition] = useState(null);
@@ -87,26 +93,35 @@ export default function useGameContext() {
 
   // Initialize Board from FEN
   useEffect(() => {
+    if (fen) {
+      console.log("Setting FEN: ", fen)
+    }
     setBoard(fen ? new Board(fen) : new Board());
   }, [fen]);
 
-  // Reset Game on Game Over
   useEffect(() => {
-    if (gameOver) {
-      setFen();
-      setScore({ white: 0, black: 0 });
-      setGameOver(false);
+    if (fenProp) {
+      if (playerColor === "b") {
+        setFen(board.flipFen(fenProp))
+      } else {
+        setFen(fenProp)
+      }
     }
-  }, [gameOver]);
-
+  }, [fenProp]);
+  
   // Update Board State & Check for Checkmate
   useEffect(() => {
     if (board && !gameOver) {
-      let mate = board.checkMate();
-      if ((mate && fullMove && fullMove > 1) || (halfMove && halfMove === 50)) {
+      let mate = board.checkMate(board.turn == "w" ? 0 : 1);
+      if (((mate == "S" || mate == "C") && fullMove && fullMove > 1) || (halfMove && halfMove === 50)) {
+        if (mate == "C") {
+          console.log("Check Mate")
+        } else {
+          console.log("Stale Mate")
+        }
         setGameOver(true);
       }
-      setVisualBoard(updateBoard(board));
+      setVisualBoard(updateBoard(board, playerColor));
       setTurn(board.turn);
       setFullMove(board.fullmove);
       setHalfMove(board.halfmove);
@@ -136,12 +151,11 @@ export default function useGameContext() {
     if (
       selected !== null &&
       !selected.classList.contains("chessboard") &&
-      ((turn == "w" && selected.classList.contains("white")) ||
-        (turn == "b" && selected.classList.contains("black")))
+      ((turn == "w" && selected.classList.contains("white") && playerColor == "w") ||
+        (turn == "b" && selected.classList.contains("black") && playerColor == "b"))
     ) {
       let tile_pos = selected.className.split("-")[1];
       setSelectedPiece(selected);
-      console.log(selected)
       setHighlightedSquare(
         <Square
           type={"highlight"}
@@ -149,44 +163,24 @@ export default function useGameContext() {
           key={`highlight-square-${tile_pos}`}
         />
       );
-      console.log(tile_pos - 1)
       let piece = board.board[tile_pos - 1];
       let [valid_moves, attack_moves] = piece.validMoves(
         board.board,
         getRowCol(tile_pos)
       );
-      // ENSURE ENPASSANT OR CASTLE DONT RESULT IN CHECK AND IF IN CHECK DONT ALLOW CASTLING
-      if (piece.type === "Pawn" && board.enpassant !== "-") {
-        let col = board.enpassant.charCodeAt(0) - "a".charCodeAt(0);
-        let row = 8 - parseInt(board.enpassant[1]);
-        attack_moves.push(row * 8 + col + 1);
-        setSpecialMoves((prev) => ({ 
-          ...prev,
-          enpassant: (row * 8 + col + 1)
-        }));
-      } else if (piece.type === "King" && board.castling !== "-") {
-        let castle = [];
-        if (piece.color === 0 && board.castling.includes("K")) {
-          castle.push(63)
-        }
-        if (piece.color === 0 && board.castling.includes("Q")) {
-          castle.push(59)
-        }
-        if (piece.color === 1 && board.castling.includes("k")) {
-          castle.push(7)
-        }
-        if (piece.color === 1 && board.castling.includes("q")) {
-          castle.push(3)
-        }
-        setSpecialMoves((prev) => ({ 
-          ...prev,
-          castle: castle
-        }));
+      if (piece.type === "King") {
+        let castle = handleCastling(piece, board, valid_moves, attack_moves, tile_pos)
+        setSpecialMoves((prev) => ({ ...prev,castle: castle}));
+      } else if (piece.type === "Pawn") {
+        let enpassantPos = null;
+        [attack_moves, enpassantPos] = handlePawnMoves(attack_moves, board)
+        setSpecialMoves((prev) => ({ ...prev,enpassant: enpassantPos}));
       }
       [valid_moves, attack_moves] = board.verifyMoves(
         tile_pos,
         valid_moves,
-        attack_moves
+        attack_moves,
+        playerColor == "w" ? 0 : 1
       );
       setAttackMoves(attack_moves);
       setValidMovesList(valid_moves);
@@ -198,39 +192,91 @@ export default function useGameContext() {
     setMoveableSquares(generateMoveableSquares(attackMoves, validMovesList));
   }, [attackMoves, validMovesList]);
 
+  const handlePromotion = (piece) => {
+    console.log("Pawn promoted to:", piece);
+    setPromoteTo(piece);
+  };
+
+  useEffect (() => {
+    if (promotionState['show']) {
+      setPromoteBoard(<PromotePawn position={promotionState['position']} onPromote={handlePromotion}/>)
+    } else {
+      setPromoteBoard()
+    }
+  }, [promotionState])
+
+  useEffect (() => {
+    if(promoteTo && board) {
+      let oPos = selectedPiece.className.split("-")[1]-1
+      let p = board.promotePawn(promotionState['position']-1, promoteTo, promotionState['color'], oPos)
+      setPoint(p);
+      setFen(board.getFen(attackMoves.includes(moveToPiece)));
+      setHighlightedSquare(null);
+      setMoveableSquares([]);
+      setAttackMoves([]);
+      setValidMovesList([]);
+      setPromotionState({
+        show: false,
+        position: null,
+        color: null,
+      });
+      setPromoteTo(null)
+    }
+  },[promoteTo])
+
   // Handle Attacks & Moves
   useEffect(() => {
     if (board) {
-      console.log(moveToPiece)
       if (
         attackMoves.includes(moveToPiece) ||
         validMovesList.includes(moveToPiece)
       ) {
-        let p = board.movePiece(
-          selectedPiece.className.split("-")[1] - 1,
-          moveToPiece - 1,
-          specialMoves);
-        if (board.enpassant === "-" && specialMoves['enpassant']) {
-          setSpecialMoves((prev) => ({ 
-            ...prev,
-            enpassant: null
-          }));
+        let oPos = selectedPiece.className.split("-")[1]-1
+        if (board.board[oPos].type === "Pawn" && ((board.board[oPos].color == 0 && moveToPiece > 0 && moveToPiece<9)||(board.board[oPos].color == 1 && moveToPiece > 56 && moveToPiece<65))) {
+          let pawn = board.board[oPos]
+            console.log("promote white")
+            setPromotionState({
+              show: true,
+              position: moveToPiece,
+              color: pawn.color,
+            });
+        }else {
+            let p = board.movePiece(
+              oPos,
+              moveToPiece - 1,
+              specialMoves);
+            if (board.enpassant === "-" && specialMoves['enpassant']) {
+              setSpecialMoves((prev) => ({ 
+                ...prev,
+                enpassant: null
+              }));
+            }
+            if (specialMoves['castle']) {
+              setSpecialMoves((prev) => ({ 
+                ...prev,
+                castle: null
+              }));
+            }
+            setPoint(p);
+            setFen(board.getFen(attackMoves.includes(moveToPiece)));
+            setHighlightedSquare(null);
+            setMoveableSquares([]);
+            setAttackMoves([]);
+            setValidMovesList([]);
         }
-        if (specialMoves['castle']) {
-          setSpecialMoves((prev) => ({ 
-            ...prev,
-            castle: null
-          }));
-        }
-        setPoint(p);
-        setFen(board.getFen(attackMoves.includes(moveToPiece)));
-        setHighlightedSquare(null);
-        setMoveableSquares([]);
-        setAttackMoves([]);
-        setValidMovesList([]);
       }
     }
   }, [moveToPiece]);
+
+  const resetGame = () => {
+    setFen();
+    setBoard(new Board());
+    setScore({ white: 0, black: 0 });
+    setGameOver(false);
+    setTurn();
+    setMoveableSquares([]);
+    setHighlightedSquare(null);
+  };
 
   // ========================
   // Return Context
@@ -241,15 +287,25 @@ export default function useGameContext() {
     hoverSquare,
     visualBoard,
     score,
+    local_fen: fen,
     gameOver,
+    promoteBoard,
+    resetGame,
     handleMouseDown: (e) => {
+      if (promotionState.show) {
+        return;
+      }
       setMoveableSquares([]);
       setHighlightedSquare(null);
       setIsMouseDown(true);
       setSelected((prev) => (prev === e.target ? null : e.target));
     },
     handleMouseMove: (e) => {
-      setTilePosition(getTilePosition(e, tilePosition));
+      let tilePos = getTilePosition(e, tilePosition)
+      setTilePosition(tilePos);
+      if(isMouseDown && turn == playerColor) {
+        setHoverSquare(<HoverSquare position={tilePos}/>);
+      }
     },
     handleMouseUp: (e) => {
       setIsMouseDown(false);

@@ -28,7 +28,8 @@
   flex-shrink: 0;
   width: 52px;
   display: flex;
-  justify-content: center;
+  justify-content: left;
+  margin-right: 100px;
   margin-left: 50px;
 }
 
