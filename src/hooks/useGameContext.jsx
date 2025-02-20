@@ -13,7 +13,7 @@ import Square from "../components/Square.jsx";
 import PromotePawn from "../components/PromotePawn.jsx";
 import HoverSquare from "../components/HoverSquare.jsx";
 
-export default function useGameContext({ fenProp, playerColor }) {
+export default function useGameContext({ fenProp, playerColor, serverScore}) {
   // ========================
   // State Variables
   // ========================
@@ -51,7 +51,7 @@ export default function useGameContext({ fenProp, playerColor }) {
 
   // Score State
   const [point, setPoint] = useState(0);
-  const [score, setScore] = useState({ white: 0, black: 0 });
+  const [score, setScore] = useState(serverScore);
   const [gameOver, setGameOver] = useState(false);
 
   // ========================
@@ -93,21 +93,21 @@ export default function useGameContext({ fenProp, playerColor }) {
 
   // Initialize Board from FEN
   useEffect(() => {
-    if (fen) {
-      console.log("Setting FEN: ", fen)
-    }
     setBoard(fen ? new Board(fen) : new Board());
   }, [fen]);
 
   useEffect(() => {
     if (fenProp) {
-      if (playerColor === "b") {
-        setFen(board.flipFen(fenProp))
-      } else {
-        setFen(fenProp)
-      }
+      setFen(fenProp)
     }
   }, [fenProp]);
+  
+  useEffect(() => {
+    if(serverScore) {
+      console.log("here")
+      setScore(serverScore)
+    }
+  }, [serverScore])
   
   // Update Board State & Check for Checkmate
   useEffect(() => {
@@ -142,6 +142,7 @@ export default function useGameContext({ fenProp, playerColor }) {
 
   useEffect(() => { 
     if (score) {
+      console.log("score updated: ", score)
       setPoint(0)
     }
   }, [score]);
@@ -301,7 +302,7 @@ export default function useGameContext({ fenProp, playerColor }) {
       setSelected((prev) => (prev === e.target ? null : e.target));
     },
     handleMouseMove: (e) => {
-      let tilePos = getTilePosition(e, tilePosition)
+      let tilePos = getTilePosition(e, tilePosition, playerColor)
       setTilePosition(tilePos);
       if(isMouseDown && turn == playerColor) {
         setHoverSquare(<HoverSquare position={tilePos}/>);

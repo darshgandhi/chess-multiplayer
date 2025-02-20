@@ -2,7 +2,7 @@ import "../styles/GameBoard.css";
 import useGameContext from "../hooks/useGameContext.jsx";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 
-const GameBoard = forwardRef(({ setScore, setGameOver, startGame, setLocalFen, server_fen, playerColor}, ref) => {
+const GameBoard = forwardRef(({ setScore, setGameOver, startGame, setLocalFen, server_fen, playerColor, serverScore}, ref) => {
   const {
     highlightedSquare,
     moveableSquares,
@@ -16,7 +16,7 @@ const GameBoard = forwardRef(({ setScore, setGameOver, startGame, setLocalFen, s
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
-  } = useGameContext({fenProp: server_fen, playerColor});
+  } = useGameContext({fenProp: server_fen, playerColor, serverScore});
 
   useImperativeHandle(ref, () => ({
     resetGame
@@ -29,6 +29,7 @@ const GameBoard = forwardRef(({ setScore, setGameOver, startGame, setLocalFen, s
   }, [gameOver, setGameOver]);
 
   useEffect(() => {
+    console.log("updated score: ", score)
     setScore(score);
   }, [score, setScore]);
 
@@ -44,6 +45,7 @@ const GameBoard = forwardRef(({ setScore, setGameOver, startGame, setLocalFen, s
     <>
       <div
         draggable="false"
+        style={playerColor === "b" ? { transform: "rotate(180deg)" } : {}}
         className={`chessboard ${startGame ? "" : "unclickable"}`}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}

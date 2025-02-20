@@ -3,13 +3,16 @@ import Square from "../components/Square.jsx";
 
 // helpers and Logic
 
-export function getTilePosition(e, tilePosition) {
+export function getTilePosition(e, tilePosition, playerColor) {
   const chessboardRect = document
     .querySelector(".chessboard")
     .getBoundingClientRect();
   const x = parseInt(e.clientX - chessboardRect.left);
   const y = parseInt(e.clientY - chessboardRect.top);
   let position = Math.floor(x / 100) + Math.floor(y / 100) * 8 + 1;
+  if (playerColor === "b") {
+    position = 64 - position + 1;
+  }
   if (position !== tilePosition) {
     return position;
   }
@@ -73,6 +76,7 @@ export function updateBoard(b, playerColor) {
         <Square
           type={`${pieceType} ${colorClass}`}
           position={position}
+          playerColor={playerColor}
           key={position}
         />
       );

@@ -32,6 +32,7 @@ function App() {
     }
   };
 
+
   async function handleMultiplayer() {
     const result = await getPlayerName();
     if (!result.isConfirmed) return;
@@ -107,8 +108,6 @@ function App() {
 
   useEffect(() => {
     if (localFen) {
-      console.log("Local Fen: ", localFen);
-      console.log("Socket instance in useEffect: ", socket);
       socket?.emit("update_game", { localFen: localFen, score: score });
     }
   }, [localFen]);
@@ -167,7 +166,7 @@ function App() {
       {gameRunning && opponentName && (
         <div className="main-div">
           <ScoreBoard bScore={score["black"]} wScore={score["white"]} p1={playerColor === "w" ? playerName : opponentName} p2={playerColor === "b" ? playerName : opponentName} />
-          <GameBoard ref={gameBoardRef} setScore={setScore} setGameOver={setGameOver} startGame={gameRunning} setLocalFen={setLocalFen} server_fen={serverFen} playerColor={playerColor} />
+          <GameBoard ref={gameBoardRef} setScore={setScore} setGameOver={setGameOver} startGame={gameRunning} setLocalFen={setLocalFen} server_fen={serverFen} playerColor={playerColor} serverScore={score} />
           <button className={`resign-button ${!gameRunning ? "disabled" : ""}`} onClick={handleResign} disabled={!gameRunning}>
             <p data-title="Resign" data-text="Resign :("></p>
           </button>
