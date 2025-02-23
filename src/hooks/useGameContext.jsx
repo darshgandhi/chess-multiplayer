@@ -13,13 +13,17 @@ import Square from "../components/Square.jsx";
 import PromotePawn from "../components/PromotePawn.jsx";
 import HoverSquare from "../components/HoverSquare.jsx";
 
-export default function useGameContext({ fenProp, playerColor, serverScore}) {
+export default function useGameContext({
+  serverFen,
+  playerColor,
+  serverScore,
+}) {
   // ========================
   // State Variables
   // ========================
 
   // Game Board State
-  const [fen, setFen] = useState(fenProp);
+  const [fen, setFen] = useState(serverFen);
   const [board, setBoard] = useState(new Board());
   const [turn, setTurn] = useState();
   const [fullMove, setFullMove] = useState(null);
@@ -36,13 +40,20 @@ export default function useGameContext({ fenProp, playerColor, serverScore}) {
   const [selected, setSelected] = useState(null);
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [moveToPiece, setMoveToPiece] = useState(null);
-  const [promoteTo, setPromoteTo] = useState(null)
+  const [promoteTo, setPromoteTo] = useState(null);
 
   // Moves State
   const [validMovesList, setValidMovesList] = useState([]);
   const [attackMoves, setAttackMoves] = useState([]);
-  const [specialMoves, setSpecialMoves] = useState({enpassant: null, castle: null});
-  const [promotionState, setPromotionState] = useState({show: false, position: null, color: null})
+  const [specialMoves, setSpecialMoves] = useState({
+    enpassant: null,
+    castle: null,
+  });
+  const [promotionState, setPromotionState] = useState({
+    show: false,
+    position: null,
+    color: null,
+  });
 
   // Mouse Tracking State
   const [tilePosition, setTilePosition] = useState(null);
@@ -97,27 +108,30 @@ export default function useGameContext({ fenProp, playerColor, serverScore}) {
   }, [fen]);
 
   useEffect(() => {
-    if (fenProp) {
-      setFen(fenProp)
+    if (serverFen) {
+      setFen(serverFen);
     }
-  }, [fenProp]);
-  
+  }, [serverFen]);
+
   useEffect(() => {
-    if(serverScore) {
-      console.log("here")
-      setScore(serverScore)
+    if (serverScore) {
+      console.log("here");
+      setScore(serverScore);
     }
-  }, [serverScore])
-  
+  }, [serverScore]);
+
   // Update Board State & Check for Checkmate
   useEffect(() => {
     if (board && !gameOver) {
       let mate = board.checkMate(board.turn == "w" ? 0 : 1);
-      if (((mate == "S" || mate == "C") && fullMove && fullMove > 1) || (halfMove && halfMove === 50)) {
+      if (
+        ((mate == "S" || mate == "C") && fullMove && fullMove > 1) ||
+        (halfMove && halfMove === 50)
+      ) {
         if (mate == "C") {
-          console.log("Check Mate")
+          console.log("Check Mate");
         } else {
-          console.log("Stale Mate")
+          console.log("Stale Mate");
         }
         setGameOver(true);
       }
@@ -129,9 +143,9 @@ export default function useGameContext({ fenProp, playerColor, serverScore}) {
   }, [board]);
 
   // Update Score when a Piece is Captured
-  useEffect(() => { 
+  useEffect(() => {
     if (point) {
-      console.log("adding point:" ,point)
+      console.log("adding point:", point);
       setScore((prev) => ({
         ...prev,
         [turn === "w" ? "white" : "black"]:
@@ -140,10 +154,10 @@ export default function useGameContext({ fenProp, playerColor, serverScore}) {
     }
   }, [point]);
 
-  useEffect(() => { 
+  useEffect(() => {
     if (score) {
-      console.log("score updated: ", score)
-      setPoint(0)
+      console.log("score updated: ", score);
+      setPoint(0);
     }
   }, [score]);
 
@@ -152,8 +166,12 @@ export default function useGameContext({ fenProp, playerColor, serverScore}) {
     if (
       selected !== null &&
       !selected.classList.contains("chessboard") &&
-      ((turn == "w" && selected.classList.contains("white") && playerColor == "w") ||
-        (turn == "b" && selected.classList.contains("black") && playerColor == "b"))
+      ((turn == "w" &&
+        selected.classList.contains("white") &&
+        playerColor == "w") ||
+        (turn == "b" &&
+          selected.classList.contains("black") &&
+          playerColor == "b"))
     ) {
       let tile_pos = selected.className.split("-")[1];
       setSelectedPiece(selected);
@@ -170,12 +188,18 @@ export default function useGameContext({ fenProp, playerColor, serverScore}) {
         getRowCol(tile_pos)
       );
       if (piece.type === "King") {
-        let castle = handleCastling(piece, board, valid_moves, attack_moves, tile_pos)
-        setSpecialMoves((prev) => ({ ...prev,castle: castle}));
+        let castle = handleCastling(
+          piece,
+          board,
+          valid_moves,
+          attack_moves,
+          tile_pos
+        );
+        setSpecialMoves((prev) => ({ ...prev, castle: castle }));
       } else if (piece.type === "Pawn") {
         let enpassantPos = null;
-        [attack_moves, enpassantPos] = handlePawnMoves(attack_moves, board)
-        setSpecialMoves((prev) => ({ ...prev,enpassant: enpassantPos}));
+        [attack_moves, enpassantPos] = handlePawnMoves(attack_moves, board);
+        setSpecialMoves((prev) => ({ ...prev, enpassant: enpassantPos }));
       }
       [valid_moves, attack_moves] = board.verifyMoves(
         tile_pos,
@@ -198,18 +222,28 @@ export default function useGameContext({ fenProp, playerColor, serverScore}) {
     setPromoteTo(piece);
   };
 
-  useEffect (() => {
-    if (promotionState['show']) {
-      setPromoteBoard(<PromotePawn position={promotionState['position']} onPromote={handlePromotion}/>)
+  useEffect(() => {
+    if (promotionState["show"]) {
+      setPromoteBoard(
+        <PromotePawn
+          position={promotionState["position"]}
+          onPromote={handlePromotion}
+        />
+      );
     } else {
-      setPromoteBoard()
+      setPromoteBoard();
     }
-  }, [promotionState])
+  }, [promotionState]);
 
-  useEffect (() => {
-    if(promoteTo && board) {
-      let oPos = selectedPiece.className.split("-")[1]-1
-      let p = board.promotePawn(promotionState['position']-1, promoteTo, promotionState['color'], oPos)
+  useEffect(() => {
+    if (promoteTo && board) {
+      let oPos = selectedPiece.className.split("-")[1] - 1;
+      let p = board.promotePawn(
+        promotionState["position"] - 1,
+        promoteTo,
+        promotionState["color"],
+        oPos
+      );
       setPoint(p);
       setFen(board.getFen(attackMoves.includes(moveToPiece)));
       setHighlightedSquare(null);
@@ -221,9 +255,9 @@ export default function useGameContext({ fenProp, playerColor, serverScore}) {
         position: null,
         color: null,
       });
-      setPromoteTo(null)
+      setPromoteTo(null);
     }
-  },[promoteTo])
+  }, [promoteTo]);
 
   // Handle Attacks & Moves
   useEffect(() => {
@@ -232,38 +266,43 @@ export default function useGameContext({ fenProp, playerColor, serverScore}) {
         attackMoves.includes(moveToPiece) ||
         validMovesList.includes(moveToPiece)
       ) {
-        let oPos = selectedPiece.className.split("-")[1]-1
-        if (board.board[oPos].type === "Pawn" && ((board.board[oPos].color == 0 && moveToPiece > 0 && moveToPiece<9)||(board.board[oPos].color == 1 && moveToPiece > 56 && moveToPiece<65))) {
-          let pawn = board.board[oPos]
-            console.log("promote white")
-            setPromotionState({
-              show: true,
-              position: moveToPiece,
-              color: pawn.color,
-            });
-        }else {
-            let p = board.movePiece(
-              oPos,
-              moveToPiece - 1,
-              specialMoves);
-            if (board.enpassant === "-" && specialMoves['enpassant']) {
-              setSpecialMoves((prev) => ({ 
-                ...prev,
-                enpassant: null
-              }));
-            }
-            if (specialMoves['castle']) {
-              setSpecialMoves((prev) => ({ 
-                ...prev,
-                castle: null
-              }));
-            }
-            setPoint(p);
-            setFen(board.getFen(attackMoves.includes(moveToPiece)));
-            setHighlightedSquare(null);
-            setMoveableSquares([]);
-            setAttackMoves([]);
-            setValidMovesList([]);
+        let oPos = selectedPiece.className.split("-")[1] - 1;
+        if (
+          board.board[oPos].type === "Pawn" &&
+          ((board.board[oPos].color == 0 &&
+            moveToPiece > 0 &&
+            moveToPiece < 9) ||
+            (board.board[oPos].color == 1 &&
+              moveToPiece > 56 &&
+              moveToPiece < 65))
+        ) {
+          let pawn = board.board[oPos];
+          console.log("promote white");
+          setPromotionState({
+            show: true,
+            position: moveToPiece,
+            color: pawn.color,
+          });
+        } else {
+          let p = board.movePiece(oPos, moveToPiece - 1, specialMoves);
+          if (board.enpassant === "-" && specialMoves["enpassant"]) {
+            setSpecialMoves((prev) => ({
+              ...prev,
+              enpassant: null,
+            }));
+          }
+          if (specialMoves["castle"]) {
+            setSpecialMoves((prev) => ({
+              ...prev,
+              castle: null,
+            }));
+          }
+          setPoint(p);
+          setFen(board.getFen(attackMoves.includes(moveToPiece)));
+          setHighlightedSquare(null);
+          setMoveableSquares([]);
+          setAttackMoves([]);
+          setValidMovesList([]);
         }
       }
     }
@@ -288,7 +327,7 @@ export default function useGameContext({ fenProp, playerColor, serverScore}) {
     hoverSquare,
     visualBoard,
     score,
-    local_fen: fen,
+    fen,
     gameOver,
     promoteBoard,
     resetGame,
@@ -302,10 +341,10 @@ export default function useGameContext({ fenProp, playerColor, serverScore}) {
       setSelected((prev) => (prev === e.target ? null : e.target));
     },
     handleMouseMove: (e) => {
-      let tilePos = getTilePosition(e, tilePosition, playerColor)
+      let tilePos = getTilePosition(e, tilePosition, playerColor);
       setTilePosition(tilePos);
-      if(isMouseDown && turn == playerColor) {
-        setHoverSquare(<HoverSquare position={tilePos}/>);
+      if (isMouseDown && turn == playerColor) {
+        setHoverSquare(<HoverSquare position={tilePos} />);
       }
     },
     handleMouseUp: (e) => {
