@@ -25,15 +25,15 @@ function App() {
     currentTurn,
     playOnline,
   } = useMultiplayer({
-    localFen,
     localScore,
+    localFen,
   });
 
   const handleStartGame = () => {
     setShowPlayAgain(true);
     setGameRunning(true);
     setGameOver(false);
-    setScore({ white: 0, black: 0 });
+    setLocalScore({ white: 0, black: 0 });
     if (gameBoardRef.current) {
       gameBoardRef.current.resetGame();
     }
@@ -65,6 +65,7 @@ function App() {
       {/* Show Only When Game is Running */}
       {gameRunning && opponentName && (
         <GameBoard
+          ref={gameBoardRef}
           playerName={playerName}
           opponentName={opponentName}
           playerColor={playerColor}

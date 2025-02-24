@@ -8,7 +8,6 @@ import {
 } from "../Utils/gameLogic.jsx";
 import { useEffect, useState } from "react";
 import { Board } from "../../server/models/Board.js";
-import React from "react";
 import Square from "../components/Square.jsx";
 import PromotePawn from "../components/PromotePawn.jsx";
 import HoverSquare from "../components/HoverSquare.jsx";
@@ -115,7 +114,6 @@ export default function useGameContext({
 
   useEffect(() => {
     if (serverScore) {
-      console.log("here");
       setScore(serverScore);
     }
   }, [serverScore]);

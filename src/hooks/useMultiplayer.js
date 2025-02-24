@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 import Swal from "sweetalert2";
 
@@ -13,14 +13,15 @@ export default function useMultiplayer({ localScore, localFen }) {
   const [playOnline, setPlayOnline] = useState(false);
 
   useEffect(() => {
-    if (localFen && localScore) {
+    if (localFen && localScore && socket) {
       socket?.emit("update_game", { localFen: localFen, score: localScore });
     }
-  }, [localFen, localScore]);
+  }, [localFen, localScore, socket]);
 
   useEffect(() => {
     if (socket) {
       socket.on("connect", () => {
+        console.log("Connected");
         setPlayOnline(true);
       });
 
@@ -40,7 +41,7 @@ export default function useMultiplayer({ localScore, localFen }) {
 
       socket.on("get_server_state", (data) => {
         setServerFen(data.localFen);
-        setScore(data.score);
+        setServerScore(data.score);
         setCurrentTurn(data.localFen.split(" ")[1]);
       });
     }
@@ -50,8 +51,12 @@ export default function useMultiplayer({ localScore, localFen }) {
     console.log("handleMultiplayer: handleMultiplayer function called");
     const result = await getPlayerName();
     if (!result.isConfirmed) return;
-    const newSocket = io("http://localhost:3000", { autoConnect: true });
+    const newSocket = io("http://192.168.204.129:3000/", {
+      transports: ["websocket"],
+      autoConnect: true,
+    });
     setPlayerName(result.value);
+    console.log(newSocket);
     newSocket?.emit("request_to_play", { name: result.value });
     setSocket(newSocket);
   }

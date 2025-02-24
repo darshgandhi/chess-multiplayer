@@ -1,4 +1,5 @@
-import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle } from "react";
+import PropTypes from "prop-types";
 import useGameContext from "../hooks/useGameContext.jsx";
 import ScoreBoard from "./ScoreBoard.jsx";
 import "../styles/GameBoard.css";
@@ -43,12 +44,16 @@ const GameBoard = forwardRef(
     }, [gameOver, setGameOver]);
 
     useEffect(() => {
-      setScore(score);
+      setLocalScore(score);
     }, [score, setLocalScore]);
 
     useEffect(() => {
       setLocalFen(fen);
     }, [fen, setLocalFen]);
+
+    function handleResign() {
+      console;
+    }
 
     return (
       <div className="main-div">
@@ -61,7 +66,7 @@ const GameBoard = forwardRef(
         <div
           draggable="false"
           style={playerColor === "b" ? { transform: "rotate(180deg)" } : {}}
-          className={`chessboard ${startGame ? "" : "unclickable"}`}
+          className={`chessboard`}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -72,11 +77,7 @@ const GameBoard = forwardRef(
           {hoverSquare}
           {visualBoard}
         </div>
-        <button
-          className={`resign-button ${!gameRunning ? "disabled" : ""}`}
-          onClick={handleResign}
-          disabled={!gameRunning}
-        >
+        <button className={`resign-button`} onClick={handleResign}>
           <p data-title="Resign" data-text="Resign :("></p>
         </button>
         <div
@@ -101,5 +102,22 @@ const GameBoard = forwardRef(
     );
   }
 );
+
+GameBoard.displayName = "GameBoard";
+
+GameBoard.propTypes = {
+  playerName: PropTypes.string.isRequired,
+  opponentName: PropTypes.string.isRequired,
+  playerColor: PropTypes.oneOf(["w", "b"]).isRequired,
+  serverFen: PropTypes.string.isRequired,
+  serverScore: PropTypes.shape({
+    white: PropTypes.number.isRequired,
+    black: PropTypes.number.isRequired,
+  }).isRequired,
+  currentTurn: PropTypes.oneOf(["w", "b"]).isRequired,
+  setLocalFen: PropTypes.func.isRequired,
+  setLocalScore: PropTypes.func.isRequired,
+  setGameOver: PropTypes.func.isRequired,
+};
 
 export default GameBoard;

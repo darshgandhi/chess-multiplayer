@@ -1,5 +1,3 @@
-import React from "react";
-
 const FindingGame = () => {
   return (
     <div className="waiting-menu">
