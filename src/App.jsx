@@ -33,7 +33,6 @@ function App() {
     setShowPlayAgain(true);
     setGameRunning(true);
     setGameOver(false);
-    setLocalScore({ white: 0, black: 0 });
     if (gameBoardRef.current) {
       gameBoardRef.current.resetGame();
     }
@@ -50,6 +49,16 @@ function App() {
       handleStartGame();
     }
   }, [playOnline]);
+
+  useEffect(() => {
+    if (
+      localScore["white"] !== serverScore["white"] ||
+      localScore["black"] !== serverScore["black"]
+    ) {
+      //console.log(localScore != serverScore);
+      //console.log(localScore, serverScore);
+    }
+  }, [localScore, serverScore]);
 
   return (
     <>

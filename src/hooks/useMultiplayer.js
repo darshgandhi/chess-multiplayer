@@ -51,12 +51,11 @@ export default function useMultiplayer({ localScore, localFen }) {
     console.log("handleMultiplayer: handleMultiplayer function called");
     const result = await getPlayerName();
     if (!result.isConfirmed) return;
-    const newSocket = io("http://192.168.204.129:3000/", {
+    const newSocket = io("http://localhost:3000", {
       transports: ["websocket"],
       autoConnect: true,
     });
     setPlayerName(result.value);
-    console.log(newSocket);
     newSocket?.emit("request_to_play", { name: result.value });
     setSocket(newSocket);
   }

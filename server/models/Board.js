@@ -2,7 +2,8 @@ import { Pawn, Rook, Knight, King, Queen, Bishop } from "./Piece.js";
 import { getRowCol } from "../../src/Utils/gameLogic.jsx";
 export class Board {
   constructor(
-    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+    fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    score = { white: 0, black: 0 }
   ) {
     this.fen = fen;
     [
@@ -16,6 +17,7 @@ export class Board {
     this.halfmove = parseInt(this.halfmove);
     this.fullmove = parseInt(this.fullmove);
     this.board = this.constructBoard();
+    this.score = score;
   }
 
   constructBoard() {
@@ -48,23 +50,26 @@ export class Board {
   }
 
   flipFen() {
-    const fen = this.fen_pos
-    const rows = fen.split("/")
-    const newRows = []
+    const fen = this.fen_pos;
+    const rows = fen.split("/");
+    const newRows = [];
     for (let i = rows.length - 1; i >= 0; i--) {
-      let row = rows[i]
-      let newRow = ""
+      let row = rows[i];
+      let newRow = "";
       for (let j = 0; j < row.length; j++) {
-        let piece = row[j]
+        let piece = row[j];
         if (!isNaN(parseInt(piece))) {
-          newRow += piece
+          newRow += piece;
         } else {
-          newRow += piece.toLowerCase() == piece ? piece.toUpperCase() : piece.toLowerCase()
+          newRow +=
+            piece.toLowerCase() == piece
+              ? piece.toUpperCase()
+              : piece.toLowerCase();
         }
       }
-      newRows.push(newRow)
+      newRows.push(newRow);
     }
-    this.fen_pos = newRows.join("/")
+    this.fen_pos = newRows.join("/");
     this.fen = `${this.fen_pos} ${this.turn} ${this.castling} ${this.enpassant} ${this.halfmove} ${this.fullmove}`;
   }
 
@@ -158,8 +163,6 @@ export class Board {
       }
     }
 
-    this.enpassant = this.enpassant;
-
     if (capture) {
       this.halfmove = 0;
     } else {
@@ -170,8 +173,8 @@ export class Board {
   }
 
   promotePawn(position, type, color, oPos) {
-    console.log(oPos)
-    let piece = this.board[position]
+    console.log(oPos);
+    let piece = this.board[position];
     this.board[oPos] = ".";
     if (type == "queen") {
       this.board[position] = new Queen(color);
@@ -191,9 +194,11 @@ export class Board {
         Queen: 9,
         King: 0,
       };
-      return pieceTypeMap[piece.type]; 
-    } else {
-      return 0;
+      let point = pieceTypeMap[piece.type];
+      const color = this.turn === "w" ? "white" : "black";
+      this.score[color] += point;
+      console.log("Updated Score:", this.score);
+      console.log(this.score);
     }
   }
 
@@ -204,40 +209,43 @@ export class Board {
     this.board[end] = oPiece;
     this.enpassant = "-";
     // Handling Special Moves
-    if (specialMoves['enpassant'] && end === specialMoves['enpassant']-1) {
-      let ep_pos = specialMoves['enpassant']-1;
+    if (specialMoves["enpassant"] && end === specialMoves["enpassant"] - 1) {
+      let ep_pos = specialMoves["enpassant"] - 1;
       if (this.turn == "w") {
-        piece = this.board[ep_pos+8]
-        this.board[ep_pos+8] = ".";
+        piece = this.board[ep_pos + 8];
+        this.board[ep_pos + 8] = ".";
       } else {
-        piece = this.board[ep_pos-8]
-        this.board[ep_pos-8] = ".";
+        piece = this.board[ep_pos - 8];
+        this.board[ep_pos - 8] = ".";
       }
-    } else if (specialMoves['castle']) {
-      if (specialMoves['castle'].includes(end+1)) {
-        if(end-1 == 61) {
-          this.board[end-1] = this.board[63]
-          this.board[63] = "."
-        } else if (end+1 == 59) {
-          this.board[end+1] = this.board[56]
-          this.board[56] = "."
-        } else if (end+1 == 7) {
-          this.board[end-1] = this.board[7]
-          this.board[7] = "."
+    } else if (specialMoves["castle"]) {
+      if (specialMoves["castle"].includes(end + 1)) {
+        if (end - 1 == 61) {
+          this.board[end - 1] = this.board[63];
+          this.board[63] = ".";
+        } else if (end + 1 == 59) {
+          this.board[end + 1] = this.board[56];
+          this.board[56] = ".";
+        } else if (end + 1 == 7) {
+          this.board[end - 1] = this.board[7];
+          this.board[7] = ".";
         } else {
-          this.board[end+1] = this.board[0]
-          this.board[0] = "."
+          this.board[end + 1] = this.board[0];
+          this.board[0] = ".";
         }
       }
     } else if (oPiece.type == "Pawn" && Math.abs(start - end) == 16) {
       const opponentColor = this.turn == "b" ? 0 : 1;
-      const left_tile = this.board[end-1]
-      const right_tile = this.board[end+1]
-      if ((left_tile.type == "Pawn" && left_tile.color === opponentColor) || (right_tile.type == "Pawn" && right_tile.color === opponentColor)) {
+      const left_tile = this.board[end - 1];
+      const right_tile = this.board[end + 1];
+      if (
+        (left_tile.type == "Pawn" && left_tile.color === opponentColor) ||
+        (right_tile.type == "Pawn" && right_tile.color === opponentColor)
+      ) {
         if (opponentColor == 0) {
-          this.enpassant = this.getAlgebraic(end-8)
+          this.enpassant = this.getAlgebraic(end - 8);
         } else {
-          this.enpassant = this.getAlgebraic(end+8)
+          this.enpassant = this.getAlgebraic(end + 8);
         }
       }
     }
@@ -251,12 +259,14 @@ export class Board {
         Queen: 9,
         King: 0,
       };
-      return pieceTypeMap[piece.type]; // Return value of captured piece
-    } else {
-      return 0;
+      let point = pieceTypeMap[piece.type];
+      const color = this.turn === "w" ? "white" : "black";
+      this.score[color] += point;
+      console.log("Updated Score:", this.score);
+      console.log(this.score);
     }
   }
-  
+
   getAlgebraic(position) {
     let [row, col] = getRowCol(position);
     let alp = String.fromCharCode(col + "a".charCodeAt(0));
@@ -301,8 +311,8 @@ export class Board {
     let piece = null;
     for (let i = 0; i < 64; i++) {
       piece = this.board[i];
-      if (piece.type == "King" && piece.color == color) {
-        return i
+      if (piece && piece.type == "King" && piece.color == color) {
+        return i;
       }
     }
   }
@@ -312,7 +322,7 @@ export class Board {
     let piece = null;
     for (let i = 0; i < 64; i++) {
       piece = this.board[i];
-      if (piece !== "." && piece.color !== kingColor) {
+      if (piece && piece !== "." && piece.color !== kingColor) {
         let attack_moves = piece.validMoves(this.board, getRowCol(i + 1))[1];
         if (attack_moves.length > 0) {
           if (attack_moves.includes(raw_pos + 1)) {
@@ -328,12 +338,17 @@ export class Board {
     const legal_moves = new Map();
     for (let i = 0; i < 64; i++) {
       let piece = this.board[i];
-      if (piece !== "." && piece.color == color) {
+      if (piece && piece !== "." && piece.color == color) {
         let [valid_moves, attack_moves] = piece.validMoves(
           this.board,
           getRowCol(i + 1)
         );
-        [valid_moves, attack_moves] = this.verifyMoves(i+1, valid_moves, attack_moves, color)
+        [valid_moves, attack_moves] = this.verifyMoves(
+          i + 1,
+          valid_moves,
+          attack_moves,
+          color
+        );
         let moves = [...valid_moves, ...attack_moves];
         if (moves.length > 0) {
           legal_moves.set(piece, [i + 1, moves]);
@@ -383,7 +398,7 @@ export class Board {
   }
 
   checkMate(turnColor) {
-    let [checked, _] = this.inCheckSpecific(turnColor);
+    let [checked] = this.inCheckSpecific(turnColor);
     // Check if there are any safe moves
     if (checked) {
       let legal_moves = this.allLegalMoves(turnColor);
@@ -397,7 +412,7 @@ export class Board {
       }
       return "C";
     }
-    if(this.allLegalMoves(turnColor).size == 0) {
+    if (this.allLegalMoves(turnColor).size == 0) {
       return "S";
     }
     return null;

@@ -1,6 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle } from "react";
-import PropTypes from "prop-types";
-import useGameContext from "../hooks/useGameContext.jsx";
+import useGameContext from "../hooks/useGameContext.js";
 import ScoreBoard from "./ScoreBoard.jsx";
 import "../styles/GameBoard.css";
 import "../styles/app.css";
@@ -65,7 +64,10 @@ const GameBoard = forwardRef(
         />
         <div
           draggable="false"
-          style={playerColor === "b" ? { transform: "rotate(180deg)" } : {}}
+          style={{
+            ...(playerColor === "b" ? { transform: "rotate(180deg)" } : {}),
+            ...(playerColor !== currentTurn ? { pointerEvents: "none" } : {}),
+          }}
           className={`chessboard`}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
@@ -104,20 +106,5 @@ const GameBoard = forwardRef(
 );
 
 GameBoard.displayName = "GameBoard";
-
-GameBoard.propTypes = {
-  playerName: PropTypes.string.isRequired,
-  opponentName: PropTypes.string.isRequired,
-  playerColor: PropTypes.oneOf(["w", "b"]).isRequired,
-  serverFen: PropTypes.string.isRequired,
-  serverScore: PropTypes.shape({
-    white: PropTypes.number.isRequired,
-    black: PropTypes.number.isRequired,
-  }).isRequired,
-  currentTurn: PropTypes.oneOf(["w", "b"]).isRequired,
-  setLocalFen: PropTypes.func.isRequired,
-  setLocalScore: PropTypes.func.isRequired,
-  setGameOver: PropTypes.func.isRequired,
-};
 
 export default GameBoard;

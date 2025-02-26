@@ -1,3 +1,8 @@
+// ========================
+// Imports
+// ========================
+
+// Utilities
 import {
   getRowCol,
   updateBoard,
@@ -5,12 +10,16 @@ import {
   generateMoveableSquares,
   handlePawnMoves,
   handleCastling,
+  getHighlightedSquare,
+  getHoverSquare,
+  getPromotePawn,
 } from "../Utils/gameLogic.jsx";
+
+// React
 import { useEffect, useState } from "react";
+
+// Models
 import { Board } from "../../server/models/Board.js";
-import Square from "../components/Square.jsx";
-import PromotePawn from "../components/PromotePawn.jsx";
-import HoverSquare from "../components/HoverSquare.jsx";
 
 export default function useGameContext({
   serverFen,
@@ -23,7 +32,7 @@ export default function useGameContext({
 
   // Game Board State
   const [fen, setFen] = useState(serverFen);
-  const [board, setBoard] = useState(new Board());
+  const [board, setBoard] = useState(new Board(serverFen));
   const [turn, setTurn] = useState();
   const [fullMove, setFullMove] = useState(null);
   const [halfMove, setHalfMove] = useState(null);
@@ -56,11 +65,10 @@ export default function useGameContext({
 
   // Mouse Tracking State
   const [tilePosition, setTilePosition] = useState(null);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  //const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isMouseDown, setIsMouseDown] = useState(false);
 
   // Score State
-  const [point, setPoint] = useState(0);
   const [score, setScore] = useState(serverScore);
   const [gameOver, setGameOver] = useState(false);
 
@@ -68,44 +76,7 @@ export default function useGameContext({
   // Effect Hooks
   // ========================
 
-  // Handle Global Mouse Up Event
-  useEffect(() => {
-    const handleMouseUpGlobal = (e) => {
-      if (isMouseDown) {
-        setIsMouseDown(false);
-        setHoverSquare(null);
-        if (
-          selected !== null &&
-          !selected.classList.contains(`square-${tilePosition}`)
-        ) {
-          setMoveToPiece(tilePosition);
-        }
-        if (selected === null || selected.classList.contains("chessboard")) {
-          setMoveableSquares([]);
-          setHighlightedSquare(null);
-        }
-        setOffset({ x: 0, y: 0 });
-      }
-    };
-    document.addEventListener("mouseup", handleMouseUpGlobal);
-    return () => {
-      document.removeEventListener("mouseup", handleMouseUpGlobal);
-    };
-  }, [isMouseDown, selected, tilePosition]);
-
-  // Prevent Dragging on Chessboard
-  useEffect(() => {
-    const chessboard = document.querySelector(".chessboard");
-    const preventDrag = (e) => e.preventDefault();
-    chessboard.addEventListener("dragstart", preventDrag);
-    return () => chessboard.removeEventListener("dragstart", preventDrag);
-  }, []);
-
   // Initialize Board from FEN
-  useEffect(() => {
-    setBoard(fen ? new Board(fen) : new Board());
-  }, [fen]);
-
   useEffect(() => {
     if (serverFen) {
       setFen(serverFen);
@@ -114,9 +85,14 @@ export default function useGameContext({
 
   useEffect(() => {
     if (serverScore) {
+      board.score = serverScore;
       setScore(serverScore);
     }
   }, [serverScore]);
+
+  useEffect(() => {
+    setBoard(fen ? new Board(fen) : new Board());
+  }, [fen]);
 
   // Update Board State & Check for Checkmate
   useEffect(() => {
@@ -140,47 +116,57 @@ export default function useGameContext({
     }
   }, [board]);
 
-  // Update Score when a Piece is Captured
+  // Handle Global Mouse Up Event
   useEffect(() => {
-    if (point) {
-      console.log("adding point:", point);
-      setScore((prev) => ({
-        ...prev,
-        [turn === "w" ? "white" : "black"]:
-          prev[turn === "w" ? "white" : "black"] + point,
-      }));
-    }
-  }, [point]);
+    const handleMouseUpGlobal = () => {
+      if (isMouseDown) {
+        setIsMouseDown(false);
+        setHoverSquare(null);
+        if (
+          selected !== null &&
+          !selected.classList.contains(`square-${tilePosition}`)
+        ) {
+          setMoveToPiece(tilePosition);
+        }
+        if (selected === null || selected.classList.contains("chessboard")) {
+          setMoveableSquares([]);
+          setHighlightedSquare(null);
+        }
+        //setOffset({ x: 0, y: 0 });
+      }
+    };
+    document.addEventListener("mouseup", handleMouseUpGlobal);
+    return () => {
+      document.removeEventListener("mouseup", handleMouseUpGlobal);
+    };
+  }, [isMouseDown, selected, tilePosition]);
 
+  // Prevent Dragging on Chessboard
   useEffect(() => {
-    if (score) {
-      console.log("score updated: ", score);
-      setPoint(0);
-    }
-  }, [score]);
+    const chessboard = document.querySelector(".chessboard");
+    const preventDrag = (e) => e.preventDefault();
+    chessboard.addEventListener("dragstart", preventDrag);
+    return () => chessboard.removeEventListener("dragstart", preventDrag);
+  }, []);
 
   // Handle Piece Selection
   useEffect(() => {
     if (
       selected !== null &&
       !selected.classList.contains("chessboard") &&
-      ((turn == "w" &&
+      ((turn === "w" &&
         selected.classList.contains("white") &&
-        playerColor == "w") ||
-        (turn == "b" &&
+        playerColor === "w") ||
+        (turn === "b" &&
           selected.classList.contains("black") &&
-          playerColor == "b"))
+          playerColor === "b"))
     ) {
       let tile_pos = selected.className.split("-")[1];
+      setMoveToPiece(null);
       setSelectedPiece(selected);
-      setHighlightedSquare(
-        <Square
-          type={"highlight"}
-          position={tile_pos}
-          key={`highlight-square-${tile_pos}`}
-        />
-      );
+      setHighlightedSquare(getHighlightedSquare(tile_pos));
       let piece = board.board[tile_pos - 1];
+      console.log(piece);
       let [valid_moves, attack_moves] = piece.validMoves(
         board.board,
         getRowCol(tile_pos)
@@ -195,8 +181,13 @@ export default function useGameContext({
         );
         setSpecialMoves((prev) => ({ ...prev, castle: castle }));
       } else if (piece.type === "Pawn") {
+        console.log("here");
         let enpassantPos = null;
-        [attack_moves, enpassantPos] = handlePawnMoves(attack_moves, board);
+        [attack_moves, enpassantPos] = handlePawnMoves(
+          attack_moves,
+          board,
+          tile_pos
+        );
         setSpecialMoves((prev) => ({ ...prev, enpassant: enpassantPos }));
       }
       [valid_moves, attack_moves] = board.verifyMoves(
@@ -210,39 +201,16 @@ export default function useGameContext({
     }
   }, [selected]);
 
-  // Show Movable Locations
-  useEffect(() => {
-    setMoveableSquares(generateMoveableSquares(attackMoves, validMovesList));
-  }, [attackMoves, validMovesList]);
-
-  const handlePromotion = (piece) => {
-    console.log("Pawn promoted to:", piece);
-    setPromoteTo(piece);
-  };
-
-  useEffect(() => {
-    if (promotionState["show"]) {
-      setPromoteBoard(
-        <PromotePawn
-          position={promotionState["position"]}
-          onPromote={handlePromotion}
-        />
-      );
-    } else {
-      setPromoteBoard();
-    }
-  }, [promotionState]);
-
+  // Handle Promotions
   useEffect(() => {
     if (promoteTo && board) {
       let oPos = selectedPiece.className.split("-")[1] - 1;
-      let p = board.promotePawn(
+      board.promotePawn(
         promotionState["position"] - 1,
         promoteTo,
         promotionState["color"],
         oPos
       );
-      setPoint(p);
       setFen(board.getFen(attackMoves.includes(moveToPiece)));
       setHighlightedSquare(null);
       setMoveableSquares([]);
@@ -275,14 +243,13 @@ export default function useGameContext({
               moveToPiece < 65))
         ) {
           let pawn = board.board[oPos];
-          console.log("promote white");
           setPromotionState({
             show: true,
             position: moveToPiece,
             color: pawn.color,
           });
         } else {
-          let p = board.movePiece(oPos, moveToPiece - 1, specialMoves);
+          board.movePiece(oPos, moveToPiece - 1, specialMoves);
           if (board.enpassant === "-" && specialMoves["enpassant"]) {
             setSpecialMoves((prev) => ({
               ...prev,
@@ -295,7 +262,7 @@ export default function useGameContext({
               castle: null,
             }));
           }
-          setPoint(p);
+          setScore(board.score);
           setFen(board.getFen(attackMoves.includes(moveToPiece)));
           setHighlightedSquare(null);
           setMoveableSquares([]);
@@ -304,7 +271,31 @@ export default function useGameContext({
         }
       }
     }
-  }, [moveToPiece]);
+  }, [
+    moveToPiece,
+    board,
+    attackMoves,
+    selectedPiece,
+    specialMoves,
+    validMovesList,
+  ]);
+
+  // Show Movable Locations
+  useEffect(() => {
+    setMoveableSquares(generateMoveableSquares(attackMoves, validMovesList));
+  }, [attackMoves, validMovesList]);
+
+  useEffect(() => {
+    if (promotionState["show"]) {
+      setPromoteBoard(getPromotePawn(promotionState, handlePromotion));
+    } else {
+      setPromoteBoard();
+    }
+  }, [promotionState]);
+
+  const handlePromotion = (piece) => {
+    setPromoteTo(piece);
+  };
 
   const resetGame = () => {
     setFen();
@@ -342,14 +333,13 @@ export default function useGameContext({
       let tilePos = getTilePosition(e, tilePosition, playerColor);
       setTilePosition(tilePos);
       if (isMouseDown && turn == playerColor) {
-        setHoverSquare(<HoverSquare position={tilePos} />);
+        setHoverSquare(getHoverSquare(tilePos));
       }
     },
-    handleMouseUp: (e) => {
+    handleMouseUp: () => {
       setIsMouseDown(false);
       setHoverSquare(null);
       if (selected) setMoveToPiece(tilePosition);
-      setOffset({ x: 0, y: 0 });
     },
   };
 }
