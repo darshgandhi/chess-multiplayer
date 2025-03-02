@@ -10,10 +10,9 @@
   letter-spacing: 1px;
   font-size: 25px;
   font-weight: 200;
-  border-radius: 5px;
   text-transform: uppercase;
-  color: white;
-  background: linear-gradient(-60deg, var(--color5) 53%, var(--color4) 53%);
+  background: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
 }
 
 .team {
@@ -33,14 +32,6 @@
   margin-left: 50px;
 }
 
-.team:nth-child(1) .color {
-  border-top-left-radius: 5px;
-}
-
-.team:nth-child(3) .color {
-  border-bottom-left-radius: 5px;
-}
-
 .team .color {
   height: 100%;
   width: 40px;
@@ -57,15 +48,6 @@
   justify-content: center;
   margin: 30px;
   letter-spacing: 2px;
-}
-
-.divider {
-  position: relative;
-  height: 1px;
-  width: 310px;
-  margin-left: 40px;
-  font-size: 10pt;
-  color: white;
 }
 
 .divider::before {

@@ -1,4 +1,3 @@
-import React from "react";
 import "../styles/ScoreBoard.css";
 
 export default function ScoreBoard({ bScore, wScore, p1, p2 }) {

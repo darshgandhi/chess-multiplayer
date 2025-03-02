@@ -1,8 +1,13 @@
 import { useState, useEffect } from "react";
 import { io } from "socket.io-client";
-import Swal from "sweetalert2";
 
-export default function useMultiplayer({ localScore, localFen }) {
+export default function useMultiplayer({
+  localScore,
+  localFen,
+  playerResign,
+  setEndReason,
+  winReason,
+}) {
   const [serverScore, setServerScore] = useState({ white: 0, black: 0 });
   const [serverFen, setServerFen] = useState("");
   const [playerName, setPlayerName] = useState("");
@@ -19,9 +24,20 @@ export default function useMultiplayer({ localScore, localFen }) {
   }, [localFen, localScore, socket]);
 
   useEffect(() => {
+    if (playerResign && socket) {
+      socket?.emit("player_resigned");
+    }
+  }, [playerResign, socket]);
+
+  useEffect(() => {
+    if (winReason && socket) {
+      socket?.emit("player_wins", winReason);
+    }
+  }, [winReason, socket]);
+
+  useEffect(() => {
     if (socket) {
       socket.on("connect", () => {
-        console.log("Connected");
         setPlayOnline(true);
       });
 
@@ -32,11 +48,16 @@ export default function useMultiplayer({ localScore, localFen }) {
       socket.on("found_opponent", (data) => {
         setOpponentName(data.opponentName);
         setPlayerColor(data.color);
+        setServerFen(
+          "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+        );
+        setServerScore({ white: 0, black: 0 });
       });
 
       socket.on("disconnect", () => {
+        setCurrentTurn("w");
+        setSocket(null);
         setPlayOnline(false);
-        setOpponentName(null);
       });
 
       socket.on("get_server_state", (data) => {
@@ -44,35 +65,41 @@ export default function useMultiplayer({ localScore, localFen }) {
         setServerScore(data.score);
         setCurrentTurn(data.localFen.split(" ")[1]);
       });
+
+      socket.on("opponent_left_match", () => {
+        if (!playerResign || !winReason) {
+          setPlayOnline(false);
+          setEndReason({ reason: "Opponent left", message: "You Win!" });
+        }
+      });
+
+      socket.on("opponent_resigned_match", () => {
+        if (!playerResign || !winReason) {
+          setPlayOnline(false);
+          setEndReason({ reason: "Opponent Resigned", message: "You Win!" });
+        }
+      });
+
+      socket.on("game_over", (data) => {
+        setPlayOnline(false);
+        setEndReason({
+          reason: data.type,
+          message: data.winner,
+        });
+      });
     }
   }, [socket]);
 
-  async function handleMultiplayer() {
-    console.log("handleMultiplayer: handleMultiplayer function called");
-    const result = await getPlayerName();
-    if (!result.isConfirmed) return;
+  function handleMultiplayer(name) {
+    setOpponentName(null);
     const newSocket = io("http://localhost:3000", {
       transports: ["websocket"],
       autoConnect: true,
     });
-    setPlayerName(result.value);
-    newSocket?.emit("request_to_play", { name: result.value });
+    setPlayerName(name);
+    newSocket?.emit("request_to_play", { name: name });
     setSocket(newSocket);
   }
-
-  const getPlayerName = async () => {
-    const result = await Swal.fire({
-      title: "Enter A Name:",
-      input: "text",
-      showCancelButton: true,
-      inputValidator: (value) => {
-        if (!value) {
-          return "You must enter a name to play.";
-        }
-      },
-    });
-    return result;
-  };
 
   return {
     handleMultiplayer,
@@ -83,5 +110,7 @@ export default function useMultiplayer({ localScore, localFen }) {
     opponentName,
     currentTurn,
     playOnline,
+    socket,
+    setOpponentName,
   };
 }

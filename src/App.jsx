@@ -2,16 +2,17 @@ import { useState, useEffect, useRef } from "react";
 import GameBoard from "./components/GameBoard";
 import StartMenu from "./components/StartMenu";
 import FindingGame from "./components/FindingGame";
-import GameOver from "./components/GameOver";
 import useMultiplayer from "./hooks/useMultiplayer.js";
 import "./styles/app.css";
 
 function App() {
-  const [gameOver, setGameOver] = useState(false);
   const [gameRunning, setGameRunning] = useState(false);
-  const [showPlayAgain, setShowPlayAgain] = useState(true);
+  const [opponentDisconnected, setOpponentDisconnected] = useState(false);
+  const [playerResign, setPlayerResign] = useState(false);
   const [localScore, setLocalScore] = useState("");
   const [localFen, setLocalFen] = useState("");
+  const [endReason, setEndReason] = useState(null);
+  const [winReason, setWinReason] = useState(null);
 
   const gameBoardRef = useRef(null);
 
@@ -24,25 +25,42 @@ function App() {
     opponentName,
     currentTurn,
     playOnline,
+    socket,
+    setOpponentName,
   } = useMultiplayer({
     localScore,
     localFen,
+    playerResign,
+    winReason,
+    setOpponentDisconnected,
+    setEndReason,
   });
 
   const handleStartGame = () => {
-    setShowPlayAgain(true);
     setGameRunning(true);
-    setGameOver(false);
     if (gameBoardRef.current) {
       gameBoardRef.current.resetGame();
     }
   };
 
-  useEffect(() => {
-    if (gameOver) {
-      setGameRunning(false);
-    }
-  }, [gameOver]);
+  const handleResign = () => {
+    setPlayerResign(true);
+    setEndReason({ reason: "You Resigned", message: "You Lose :(" });
+  };
+
+  const handleExit = () => {
+    setOpponentName(null);
+    setOpponentDisconnected(true);
+    setLocalScore("");
+    setLocalFen("");
+    setEndReason(null);
+    setWinReason(null);
+    setGameRunning(false);
+    setOpponentDisconnected(false);
+    setPlayerResign(false);
+    gameBoardRef.current.resetGame();
+    socket.close();
+  };
 
   useEffect(() => {
     if (playOnline) {
@@ -50,27 +68,13 @@ function App() {
     }
   }, [playOnline]);
 
-  useEffect(() => {
-    if (
-      localScore["white"] !== serverScore["white"] ||
-      localScore["black"] !== serverScore["black"]
-    ) {
-      //console.log(localScore != serverScore);
-      //console.log(localScore, serverScore);
-    }
-  }, [localScore, serverScore]);
-
   return (
     <>
       {/* Pre Game Menus */}
       {!gameRunning && <StartMenu handleMultiplayer={handleMultiplayer} />}
-      {playOnline && !opponentName && <FindingGame />}
-
-      {/* Game Over Menu */}
-      {gameOver && showPlayAgain && (
-        <GameOver handleStartGame={handleStartGame} />
+      {playOnline && !opponentName && !opponentDisconnected && socket && (
+        <FindingGame />
       )}
-
       {/* Show Only When Game is Running */}
       {gameRunning && opponentName && (
         <GameBoard
@@ -81,9 +85,12 @@ function App() {
           serverFen={serverFen}
           serverScore={serverScore}
           currentTurn={currentTurn}
+          endReason={endReason}
           setLocalScore={setLocalScore}
           setLocalFen={setLocalFen}
-          setGameOver={setGameOver}
+          handleResign={handleResign}
+          handleExit={handleExit}
+          setWinReason={setWinReason}
         />
       )}
     </>

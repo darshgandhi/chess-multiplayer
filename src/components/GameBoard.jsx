@@ -1,6 +1,5 @@
 import { forwardRef, useEffect, useImperativeHandle } from "react";
 import useGameContext from "../hooks/useGameContext.js";
-import ScoreBoard from "./ScoreBoard.jsx";
 import "../styles/GameBoard.css";
 import "../styles/app.css";
 
@@ -15,7 +14,10 @@ const GameBoard = forwardRef(
       currentTurn,
       setLocalFen,
       setLocalScore,
-      setGameOver,
+      handleResign,
+      handleExit,
+      endReason,
+      setWinReason,
     },
     ref
   ) => {
@@ -26,7 +28,7 @@ const GameBoard = forwardRef(
       visualBoard,
       score,
       fen,
-      gameOver,
+      winReason,
       promoteBoard,
       resetGame,
       handleMouseDown,
@@ -39,10 +41,6 @@ const GameBoard = forwardRef(
     }));
 
     useEffect(() => {
-      setGameOver(gameOver);
-    }, [gameOver, setGameOver]);
-
-    useEffect(() => {
       setLocalScore(score);
     }, [score, setLocalScore]);
 
@@ -50,57 +48,84 @@ const GameBoard = forwardRef(
       setLocalFen(fen);
     }, [fen, setLocalFen]);
 
-    function handleResign() {
-      console;
-    }
+    useEffect(() => {
+      if (winReason) {
+        setWinReason(winReason);
+      }
+    }, [winReason, setWinReason]);
 
     return (
-      <div className="main-div">
-        <ScoreBoard
-          bScore={serverScore["black"]}
-          wScore={serverScore["white"]}
-          p1={playerColor === "w" ? playerName : opponentName}
-          p2={playerColor === "b" ? playerName : opponentName}
-        />
-        <div
-          draggable="false"
-          style={{
-            ...(playerColor === "b" ? { transform: "rotate(180deg)" } : {}),
-            ...(playerColor !== currentTurn ? { pointerEvents: "none" } : {}),
-          }}
-          className={`chessboard`}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-        >
-          {promoteBoard}
-          {highlightedSquare}
-          {moveableSquares}
-          {hoverSquare}
-          {visualBoard}
+      <>
+        <div>
+          {endReason && (
+            <div className="game-over-menu">
+              <h2 className="title">Game Over: {endReason.reason}</h2>
+              <p className="">{endReason.message}</p>
+              <button className="exit-button" onClick={handleExit}>
+                Exit
+              </button>
+            </div>
+          )}
         </div>
-        <button className={`resign-button`} onClick={handleResign}>
-          <p data-title="Resign" data-text="Resign :("></p>
-        </button>
-        <div
-          className={`player ${
-            currentTurn === playerColor
-              ? "turn" + (playerColor === "b" ? "Black" : "White")
-              : ""
-          }`}
-        >
-          You: {playerName}
+        <div className="main-div">
+          <div
+            draggable="false"
+            style={{
+              transform: playerColor === "b" ? "rotate(180deg)" : "none",
+              ...(playerColor !== currentTurn || endReason
+                ? { pointerEvents: "none" }
+                : {}),
+            }}
+            className={`chessboard`}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+          >
+            {promoteBoard}
+            {highlightedSquare}
+            {moveableSquares}
+            {hoverSquare}
+            {visualBoard}
+          </div>
+          <button
+            style={{
+              ...(endReason ? { pointerEvents: "none" } : {}),
+            }}
+            className={`resign-button`}
+            onClick={handleResign}
+          >
+            <p data-title="Resign" data-text="Resign :("></p>
+          </button>
+          <div
+            className={`player ${
+              currentTurn === playerColor
+                ? "turn" + (playerColor === "b" ? "Black" : "White")
+                : ""
+            }`}
+          >
+            <div>You: {playerName}</div>
+            <div className="font-bold">
+              {playerColor === "w"
+                ? serverScore["white"]
+                : serverScore["black"]}
+            </div>
+          </div>
+          <div
+            className={`opponent ${
+              currentTurn === playerColor
+                ? ""
+                : "turn" + (playerColor === "b" ? "Black" : "White")
+            }`}
+          >
+            <div>Opponent: {opponentName}</div>
+            <div className="font-bold">
+              {playerColor === "w"
+                ? serverScore["black"]
+                : serverScore["white"]}
+            </div>
+          </div>
         </div>
-        <div
-          className={`opponent ${
-            currentTurn !== playerColor
-              ? "turn" + (playerColor !== "b" ? "Black" : "White")
-              : ""
-          }`}
-        >
-          Enemy: {opponentName}
-        </div>
-      </div>
+      </>
     );
   }
 );

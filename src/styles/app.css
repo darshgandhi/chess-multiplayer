@@ -1,58 +1,3 @@
-.main-div {
-  display: grid;
-  grid-template-columns: 1fr 2fr 1fr; /* Left (buttons) | Center (chessboard) | Right (scoreboard) */
-  grid-template-rows: 100px 100px 100px; /* Ensures even spacing for rows */
-  gap: 20px;
-  background-color: transparent;
-  font-family: "Atkinson Hyperlegible Mono", serif;
-  margin: auto;
-  margin-top: 20px;
-  height: 100vh;
-  width: fit-content;
-  justify-content: center;
-  align-items: start;
-  justify-items: center;
-  align-items: center;
-}
-
-h1 {
-  font-size: 2rem;
-}
-
-.scoreboard {
-  margin-top: auto;
-  grid-column: 3;
-  grid-row: 1;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
-}
-
-.chessboard {
-  margin-top: auto;
-  grid-column: 2;
-  grid-row: 1 / span 3;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
-}
-
-.start-menu {
-  font-family: "Atkinson Hyperlegible Mono", serif;
-  color: white;
-  font-size: 25px;
-  font-weight: 200;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 50vh;
-}
-
-.start-menu h1 {
-  font-size: 5rem;
-  margin-bottom: 100px;
-}
-
 .waiting-menu {
   display: flex;
   flex-direction: column;
@@ -65,128 +10,14 @@ h1 {
 
 .waiting-menu h1 {
   font-family: "Atkinson Hyperlegible Mono", serif;
-  color: white;
+  color: black;
   font-weight: 200;
   letter-spacing: 1px;
   text-transform: uppercase;
-  font-size: 5rem;
+  font-size: 2rem;
 }
 
-.multiplayer-button,
-.ai-button{
-  width: 350px;
-  height: 100px;
-  margin: 10px;
-  font-size: 25px;
-  font-weight: 200;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
-  border-radius: 5px;
-  background: linear-gradient(-60deg, var(--color5) 53%, var(--color4) 53%);
-}
-
-.multiplayer-button p::before,
-.ai-button p::before {
-  content: attr(data-title);
-  background: transparent;
-}
-
-.multiplayer-button:hover,
-.ai-button:hover{
-  background: linear-gradient(
-    -60deg,
-    rgba(255, 255, 255, 0.1) 53%,
-    rgb(250, 255, 255, 0.15) 53%
-  );
-  font-weight: 500;
-  color: black;
-}
-
-.player,
-.opponent {
-  grid-column: 1;
-  width: 350px;
-  height: 100px;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
-  border-radius: 5px;
-  letter-spacing: 1px;
-  font-size: 20px;
-  font-weight: 200;
-  text-transform: uppercase;
-  color: black;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: rgba(126, 126, 126, 0)
-}
-
-.player {
-  grid-row: 1
-}
-
-.opponent {
-  grid-row: 2;
-}
-
-.turnBlack {
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-}
-
-.turnWhite {
-  background: rgba(255, 255, 255, 0.6);
-  color: black;
-}
-
-.disabled {
-  opacity: 0;
-  background: linear-gradient(
-    -60deg,
-    rgba(255, 255, 255, 0.1) 53%,
-    rgba(82, 116, 116, 0.15) 53%
-  );
-}
-
-.resign-button {
-  margin-top: auto;
-  grid-column: 3;
-  grid-row: 2;
-  margin-top: 60px;
-  width: 350px;
-  height: 100px;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
-  border-radius: 5px;
-  letter-spacing: 1px;
-  font-size: 25px;
-  font-weight: 200;
-  text-transform: uppercase;
-  color: black;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(
-    -60deg,
-    rgba(255, 255, 255, 0.1) 53%,
-    rgb(250, 255, 255, 0.15) 53%
-  );
-}
-
-.resign-button p::before {
-  content: attr(data-title);
-  grid-column: 1;
-  background: transparent;
-}
-
-.resign-button:hover {
-  background: rgb(250, 0, 0, 0.6);
-  font-weight: 500;
-  color: white;
-}
-
-/* From Uiverse.io by PriyanshuGupta28 */ 
+/* From Uiverse.io by PriyanshuGupta28 */
 .spinner {
   width: 10px;
   height: 10px;
@@ -197,10 +28,11 @@ h1 {
 
 .spinner div {
   position: absolute;
-  width: 50%;
-  height: 150%;
-  background: #ffffff;
-  transform: rotate(calc(var(--rotation) * 1deg)) translate(0, calc(var(--translation) * 1%));
+  width: 15%;
+  height: 60%;
+  background: black;
+  transform: rotate(calc(var(--rotation) * 1deg))
+    translate(0, calc(var(--translation) * 1%));
   animation: spinner-fzua35 1s calc(var(--delay) * 1s) infinite ease;
 }
 
@@ -265,11 +97,22 @@ h1 {
 }
 
 @keyframes spinner-fzua35 {
-  0%, 10%, 20%, 30%, 50%, 60%, 70%, 80%, 90%, 100% {
-    transform: rotate(calc(var(--rotation) * 1deg)) translate(0, calc(var(--translation) * 1%));
+  0%,
+  10%,
+  20%,
+  30%,
+  50%,
+  60%,
+  70%,
+  80%,
+  90%,
+  100% {
+    transform: rotate(calc(var(--rotation) * 1deg))
+      translate(0, calc(var(--translation) * 1%));
   }
 
   50% {
-    transform: rotate(calc(var(--rotation) * 1deg)) translate(0, calc(var(--translation) * 1.5%));
+    transform: rotate(calc(var(--rotation) * 1deg))
+      translate(0, calc(var(--translation) * 1.5%));
   }
 }

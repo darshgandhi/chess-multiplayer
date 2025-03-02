@@ -1,4 +1,5 @@
 const allUsers = {};
+const allRooms = [];
 
 export function setupSocketEvents(io) {
   io.on("connection", (socket) => {
@@ -7,6 +8,29 @@ export function setupSocketEvents(io) {
     } else {
       allUsers[socket.id] = { socket: socket, online: true };
     }
+
+    socket.on("player_resigned", () => {
+      for (let i = 0; i < allRooms.length; i++) {
+        const { player1, player2 } = allRooms[i];
+        if (player1.socket.id === socket.id) {
+          player2.socket.emit("opponent_resigned_match");
+        } else if (player2.socket.id === socket.id) {
+          player1.socket.emit("opponent_resigned_match");
+        }
+      }
+    });
+
+    socket.on("player_wins", (data) => {
+      for (let i = 0; i < allRooms.length; i++) {
+        const { player1, player2 } = allRooms[i];
+        if (player1.socket.id === socket.id) {
+          player2.socket.emit("game_over", data);
+        }
+        if (player2.socket.id === socket.id) {
+          player1.socket.emit("game_over", data);
+        }
+      }
+    });
 
     socket.on("request_to_play", (data) => {
       const currentUser = allUsers[socket.id];
@@ -18,6 +42,9 @@ export function setupSocketEvents(io) {
       if (opponentUser) {
         const colors = ["w", "b"];
         const color = colors[Math.floor(Math.random() * colors.length)];
+
+        allRooms.push({ player1: opponentUser, player2: currentUser });
+
         opponentUser.socket.emit("found_opponent", {
           opponentName: currentUser.name,
           color: color,
@@ -30,14 +57,12 @@ export function setupSocketEvents(io) {
         opponentUser.online = false;
 
         currentUser.socket.on("update_game", (data) => {
-          console.log("Updating Socket");
           opponentUser.socket.emit("get_server_state", {
             localFen: data.localFen,
             score: data.score,
           });
         });
         opponentUser.socket.on("update_game", (data) => {
-          console.log("Updating Socket");
           currentUser.socket.emit("get_server_state", {
             localFen: data.localFen,
             score: data.score,
@@ -50,6 +75,15 @@ export function setupSocketEvents(io) {
 
     socket.on("disconnect", () => {
       console.log("Disconnected User: ", socket.id);
+      for (let i = 0; i < allRooms.length; i++) {
+        const { player1, player2 } = allRooms[i];
+        if (player1.socket.id === socket.id) {
+          player2.socket.emit("opponent_left_match");
+        }
+        if (player2.socket.id === socket.id) {
+          player1.socket.emit("opponent_left_match");
+        }
+      }
       if (allUsers[socket.id]) {
         delete allUsers[socket.id];
       }

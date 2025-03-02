@@ -49,6 +49,7 @@ export default function useGameContext({
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [moveToPiece, setMoveToPiece] = useState(null);
   const [promoteTo, setPromoteTo] = useState(null);
+  const [winReason, setWinReason] = useState(null);
 
   // Moves State
   const [validMovesList, setValidMovesList] = useState([]);
@@ -91,6 +92,7 @@ export default function useGameContext({
   }, [serverScore]);
 
   useEffect(() => {
+    console.log(fen);
     setBoard(fen ? new Board(fen) : new Board());
   }, [fen]);
 
@@ -100,12 +102,18 @@ export default function useGameContext({
       let mate = board.checkMate(board.turn == "w" ? 0 : 1);
       if (
         ((mate == "S" || mate == "C") && fullMove && fullMove > 1) ||
-        (halfMove && halfMove === 50)
+        (halfMove && halfMove === 49)
       ) {
         if (mate == "C") {
-          console.log("Check Mate");
+          setWinReason({
+            winner: (board.turn === "b" ? "White" : "Black") + " Wins!",
+            type: "Checkmate",
+          });
         } else {
-          console.log("Stale Mate");
+          setWinReason({
+            winner: "Tie",
+            type: mate == "S" ? "Stalemate" : "50 moves without capture :(",
+          });
         }
         setGameOver(true);
       }
@@ -166,12 +174,11 @@ export default function useGameContext({
       setSelectedPiece(selected);
       setHighlightedSquare(getHighlightedSquare(tile_pos));
       let piece = board.board[tile_pos - 1];
-      console.log(piece);
       let [valid_moves, attack_moves] = piece.validMoves(
         board.board,
         getRowCol(tile_pos)
       );
-      if (piece.type === "King") {
+      if (piece.type === "King" && !board.inCheckSpecific(piece.color)[0]) {
         let castle = handleCastling(
           piece,
           board,
@@ -181,7 +188,6 @@ export default function useGameContext({
         );
         setSpecialMoves((prev) => ({ ...prev, castle: castle }));
       } else if (piece.type === "Pawn") {
-        console.log("here");
         let enpassantPos = null;
         [attack_moves, enpassantPos] = handlePawnMoves(
           attack_moves,
@@ -317,7 +323,7 @@ export default function useGameContext({
     visualBoard,
     score,
     fen,
-    gameOver,
+    winReason,
     promoteBoard,
     resetGame,
     handleMouseDown: (e) => {

@@ -1,10 +1,8 @@
-import React, { useState, useEffect } from "react";
 import "../styles/Square.css";
 
 function PromotePawn({ position, onPromote }) {
   const handlePromotion = (e) => {
     const piece = e.target.getAttribute("data-piece");
-    console.log("Selected piece:", piece);
     onPromote(piece);
   };
 
@@ -21,4 +19,3 @@ function PromotePawn({ position, onPromote }) {
 }
 
 export default PromotePawn;
-

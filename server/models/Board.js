@@ -173,7 +173,6 @@ export class Board {
   }
 
   promotePawn(position, type, color, oPos) {
-    console.log(oPos);
     let piece = this.board[position];
     this.board[oPos] = ".";
     if (type == "queen") {
@@ -197,8 +196,6 @@ export class Board {
       let point = pieceTypeMap[piece.type];
       const color = this.turn === "w" ? "white" : "black";
       this.score[color] += point;
-      console.log("Updated Score:", this.score);
-      console.log(this.score);
     }
   }
 
@@ -262,8 +259,6 @@ export class Board {
       let point = pieceTypeMap[piece.type];
       const color = this.turn === "w" ? "white" : "black";
       this.score[color] += point;
-      console.log("Updated Score:", this.score);
-      console.log(this.score);
     }
   }
 
