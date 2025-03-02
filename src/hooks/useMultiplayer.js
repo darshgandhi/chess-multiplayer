@@ -92,7 +92,7 @@ export default function useMultiplayer({
 
   function handleMultiplayer(name) {
     setOpponentName(null);
-    const newSocket = io("http://localhost:3000", {
+    const newSocket = io("https://chess-backend-19dq.onrender.com", {
       transports: ["websocket"],
       autoConnect: true,
     });

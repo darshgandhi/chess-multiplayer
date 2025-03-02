@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "server": "nodemon server/server.js",
+    "start": "node server/server.js",
     "dev-server": "concurrently --kill-other \"npm run dev\" \"npm run server\""
   },
   "dependencies": {
