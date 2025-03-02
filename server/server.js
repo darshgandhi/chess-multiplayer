@@ -7,7 +7,7 @@ import { setupSocketEvents } from "./sockets/chessSockets.js";
 const PORT = process.env.PORT || 3000;
 
 const corsOptions = {
-  origin: "https://chess-mulitplayer-ai.pages.dev/",
+  origin: "https://chess-multiplayer.pages.dev/",
   methods: ["GET", "POST"],
 };
 
