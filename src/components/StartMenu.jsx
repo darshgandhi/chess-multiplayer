@@ -17,6 +17,9 @@ const StartMenu = ({ handleMultiplayer }) => {
               <p className="w-full font-bold text-3xl tracking-tighter">
                 Chess.Online
               </p>
+              <p className="w-full text-xl tracking-widest">
+                Note: Bugs are pending fix!
+              </p>
             </div>
             <div className="grid gap-2">
               <div className="grid gap-2">
