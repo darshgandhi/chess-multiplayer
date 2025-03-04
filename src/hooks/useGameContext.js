@@ -85,7 +85,11 @@ export default function useGameContext({
   }, [serverFen]);
 
   useEffect(() => {
-    if (serverScore) {
+    if (
+      serverScore &&
+      (serverScore.white >= score.white || serverScore.black >= score.black)
+    ) {
+      console.log(serverScore, score);
       board.score = serverScore;
       setScore(serverScore);
     }

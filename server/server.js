@@ -4,10 +4,15 @@ import cors from "cors";
 import express from "express";
 import { setupSocketEvents } from "./sockets/chessSockets.js";
 
-const PORT = process.env.PORT || 3000;
+const PORT = /*process.env.PORT ||*/ 3000;
+
+/* const corsOptions = {
+  origin: "https://chess-multiplayer.pages.dev/",
+  methods: ["GET", "POST"],
+};*/
 
 const corsOptions = {
-  origin: "https://chess-multiplayer.pages.dev/",
+  origin: "http://localhost:5174/",
   methods: ["GET", "POST"],
 };
 

@@ -40,9 +40,8 @@ const StartMenu = ({ handleMultiplayer }) => {
                 <button
                   className="text-white bg-black h-10 w-full border rounded-md hover:opacity-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-white disabled:text-black"
                   disabled={!name.trim()}
-                  onClick={handleButtonClick}
                 >
-                  <p>Play Multiplayer</p>
+                  <p>Currently Down Sorry!</p>
                 </button>
               </div>
             </div>

@@ -34,6 +34,7 @@ function App() {
     winReason,
     setOpponentDisconnected,
     setEndReason,
+    setLocalScore,
   });
 
   const handleStartGame = () => {
