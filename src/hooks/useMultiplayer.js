@@ -63,7 +63,6 @@ export default function useMultiplayer({
 
       socket.on("get_server_state", (data) => {
         setServerFen(data.localFen);
-        console.log("updating with server state");
         setServerScore(data.score);
         setLocalScore(data.score);
         setCurrentTurn(data.localFen.split(" ")[1]);
@@ -95,14 +94,14 @@ export default function useMultiplayer({
 
   function handleMultiplayer(name) {
     setOpponentName(null);
-    const newSocket = io("https://chess-backend-19dq.onrender.com", {
-      transports: ["websocket"],
-      autoConnect: true,
-    });
-    /*const newSocket = io("http://localhost:3000", {
+    /*const newSocket = io("https://chess-backend-19dq.onrender.com", {
       transports: ["websocket"],
       autoConnect: true,
     });*/
+    const newSocket = io("http://localhost:3000", {
+      transports: ["websocket"],
+      autoConnect: true,
+    });
     setPlayerName(name);
     newSocket?.emit("request_to_play", { name: name });
     setSocket(newSocket);

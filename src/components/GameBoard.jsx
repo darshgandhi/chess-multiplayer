@@ -81,11 +81,11 @@ const GameBoard = forwardRef(
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
           >
-            {promoteBoard}
             {highlightedSquare}
             {moveableSquares}
             {hoverSquare}
             {visualBoard}
+            {promoteBoard}
           </div>
           <button
             style={{

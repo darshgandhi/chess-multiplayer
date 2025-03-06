@@ -15,6 +15,7 @@ export class Pawn extends Piece {
     position = (startRow - 1) * 8 + startCol;
     let valid_moves = [];
     let attack_moves = [];
+    console.log(this.color);
     if (this.color == 0) {
       if (board[position - 9] === "." && position - 8 > 0) {
         valid_moves.push(position - 8);
@@ -31,7 +32,7 @@ export class Pawn extends Piece {
         if (row > 0 && row < 9 && col > 0 && col < 9) {
           let new_pos = (row - 1) * 8 + col;
           if (
-            new_pos < 64 &&
+            new_pos < 65 &&
             new_pos > 0 &&
             board[new_pos - 1] !== "." &&
             board[new_pos - 1].color !== board[position - 1].color
@@ -41,7 +42,8 @@ export class Pawn extends Piece {
         }
       });
     } else {
-      if (board[position + 7] === "." && position + 8 < 64) {
+      console.log(position);
+      if (board[position + 7] === "." && position + 8 < 65) {
         valid_moves.push(position + 8);
         if (board[position + 15] === "." && position > 8 && position < 17) {
           valid_moves.push(position + 16);
@@ -55,7 +57,7 @@ export class Pawn extends Piece {
         if (row > 0 && row < 9 && col > 0 && col < 9) {
           let new_pos = (row - 1) * 8 + col;
           if (
-            new_pos < 64 &&
+            new_pos < 65 &&
             new_pos > 0 &&
             board[new_pos - 1] !== "." &&
             board[new_pos - 1].color !== board[position - 1].color
@@ -131,7 +133,7 @@ export class Knight extends Piece {
     possibleMoves.forEach(([row, col]) => {
       if (row > 0 && row < 9 && col > 0 && col < 9) {
         let new_pos = (row - 1) * 8 + col;
-        if (new_pos < 64 && new_pos > 0) {
+        if (new_pos < 65 && new_pos > 0) {
           if (board[new_pos - 1] === ".") {
             valid_moves.push(new_pos);
           } else if (
@@ -209,7 +211,7 @@ export class King extends Piece {
     possibleMoves.forEach(([row, col]) => {
       if (row > 0 && row < 9 && col > 0 && col < 9) {
         let new_pos = (row - 1) * 8 + col;
-        if (new_pos < 64 && new_pos > 0) {
+        if (new_pos < 65 && new_pos > 0) {
           if (board[new_pos - 1] === ".") {
             valid_moves.push(new_pos);
           } else if (

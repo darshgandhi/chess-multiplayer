@@ -2,11 +2,13 @@ import PropTypes from "prop-types";
 import { useState } from "react";
 
 const StartMenu = ({ handleMultiplayer }) => {
+  const [buttonMsg, setButtonMsg] = useState("Play Multiplayer");
+
   const handleButtonClick = async () => {
     await handleMultiplayer(name);
   };
-
   const [name, setName] = useState("");
+
   return (
     <main className="font-mono uppercase">
       <div className="flex w-full items-center justify-center py-12 lg:grid lg:min-h-[600px] xl:min-h-[800]px">
@@ -17,8 +19,11 @@ const StartMenu = ({ handleMultiplayer }) => {
               <p className="w-full font-bold text-3xl tracking-tighter">
                 Chess.Online
               </p>
-              <p className="w-full text-xl tracking-widest">
-                Note: Bugs are pending fix!
+              <p className="w-full text-sm tracking-widest">
+                Bugs: Scoreboard is pending fix.
+              </p>
+              <p className="w-full text-sm tracking-widest">
+                Note: Server may take a minute to start up after hitting play.
               </p>
             </div>
             <div className="grid gap-2">
@@ -45,7 +50,7 @@ const StartMenu = ({ handleMultiplayer }) => {
                   disabled={!name.trim()}
                   onClick={handleButtonClick}
                 >
-                  <p>Play Multiplayer</p>
+                  <p>{buttonMsg}</p>
                 </button>
               </div>
             </div>

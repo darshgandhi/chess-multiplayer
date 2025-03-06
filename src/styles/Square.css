@@ -40,10 +40,31 @@
 }
 
 /* Assign background images */
-.promotion-choice.queen { background-image: url("/piece/governor/wQ.svg"); }
-.promotion-choice.rook { background-image: url("/piece/governor/wR.svg"); }
-.promotion-choice.bishop { background-image: url("/piece/governor/wB.svg"); }
-.promotion-choice.knight { background-image: url("/piece/governor/wN.svg"); }
+.promotion-choice.queen {
+  background-image: url("/piece/governor/wQ.svg");
+}
+.promotion-choice.rook {
+  background-image: url("/piece/governor/wR.svg");
+}
+.promotion-choice.bishop {
+  background-image: url("/piece/governor/wB.svg");
+}
+.promotion-choice.knight {
+  background-image: url("/piece/governor/wN.svg");
+}
+
+.promotion-choice.queen.black {
+  background-image: url("/piece/governor/bQ.svg");
+}
+.promotion-choice.rook.black {
+  background-image: url("/piece/governor/bR.svg");
+}
+.promotion-choice.bishop.black {
+  background-image: url("/piece/governor/bB.svg");
+}
+.promotion-choice.knight.black {
+  background-image: url("/piece/governor/bN.svg");
+}
 
 .highlight {
   background-color: rgba(144, 238, 144, 0.5);

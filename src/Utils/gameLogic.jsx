@@ -34,11 +34,12 @@ export function getHoverSquare(tilePos) {
   return <HoverSquare position={tilePos} />;
 }
 
-export function getPromotePawn(promotionState, handlePromotion) {
+export function getPromotePawn(promotionState, handlePromotion, playerColor) {
   return (
     <PromotePawn
       position={promotionState["position"]}
       onPromote={handlePromotion}
+      playerColor={playerColor}
     />
   );
 }

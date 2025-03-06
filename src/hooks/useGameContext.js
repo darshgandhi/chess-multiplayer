@@ -89,7 +89,6 @@ export default function useGameContext({
       serverScore &&
       (serverScore.white >= score.white || serverScore.black >= score.black)
     ) {
-      console.log(serverScore, score);
       board.score = serverScore;
       setScore(serverScore);
     }
@@ -297,7 +296,9 @@ export default function useGameContext({
 
   useEffect(() => {
     if (promotionState["show"]) {
-      setPromoteBoard(getPromotePawn(promotionState, handlePromotion));
+      setPromoteBoard(
+        getPromotePawn(promotionState, handlePromotion, playerColor)
+      );
     } else {
       setPromoteBoard();
     }
