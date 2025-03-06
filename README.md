@@ -29,3 +29,6 @@ Make sure you have the following installed on your system:
 
 - Node.js (version 14 or higher)
 - npm (Node Package Manager)
+
+## License
+This project is not licensed. You may use, copy, or modify the code at your own risk, but please respect the author's rights.
