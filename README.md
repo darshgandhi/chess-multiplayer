@@ -1,7 +1,7 @@
 # Chess Game
 
 [![Status](https://img.shields.io/badge/Status-Active%20Development-orange)](https://github.com/darshgandhi/chess-multiplayer)
-[![Issues](https://img.shields.io/github/issues/yourusername/chess-game)](https://github.com/darshgandhi/chess-multiplayer/issues)
+[![Issues](https://img.shields.io/github/issues/darshgandhi/chess-game)](https://github.com/darshgandhi/chess-multiplayer/issues)
 [![Contributions](https://img.shields.io/badge/Contributions-Welcome-brightgreen)](https://github.com/darshgandhi/chess-multiplayer)
 
 A real-time multiplayer online chess game built with **React (Vite)**, **Node.js**, and **Socket.IO**. The game allows users to play against each other in a dynamic and interactive environment. Custom chess logic has been developed from scratch to handle move validation, game rules, and state management.
