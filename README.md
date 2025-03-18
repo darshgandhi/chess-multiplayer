@@ -9,7 +9,9 @@ A real-time multiplayer online chess game built with **React (Vite)**, **Node.js
 
 🔗 **Play Here** [Chess Multiplayer](https://chess-multiplayer.pages.dev)
 
-> ⚠️ **Note:** After hitting play, the server may take a moment to start up. Once ready, it will automatically find a match for you.
+> ⚠️ **Notes:**
+- After hitting play, the server may take a moment to start up. Once ready, it will automatically find a match for you.
+- There is a bug with the scoreboard that is pending a fix.
 
 ## Tech Stack
 
