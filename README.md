@@ -5,6 +5,11 @@
 
 A real-time multiplayer online chess game built with **React (Vite)**, **Node.js**, and **Socket.IO**. The game allows users to play against each other in a dynamic and interactive environment. Custom chess logic has been developed from scratch to handle move validation, game rules, and state management.
 
+## Demo Video (Click to View)
+
+[![Video](https://github.com/darshgandhi/chess-multiplayer/blob/main/public/assets/Brown%20Minimalist%20Podcast%20Promotion%20Youtube%20Thumbnail.png)](https://youtu.be/eSEvcTwdFiQ)
+
+
 ## Play the Game
 
 🔗 **Play Here** [Chess Multiplayer](https://chess-multiplayer.pages.dev)
