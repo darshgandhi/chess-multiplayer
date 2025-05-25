@@ -94,14 +94,14 @@ export default function useMultiplayer({
 
   function handleMultiplayer(name) {
     setOpponentName(null);
-    /*const newSocket = io("https://chess-backend-19dq.onrender.com", {
-      transports: ["websocket"],
-      autoConnect: true,
-    });*/
-    const newSocket = io("http://localhost:3000", {
+    const newSocket = io("https://chess-backend-19dq.onrender.com", {
       transports: ["websocket"],
       autoConnect: true,
     });
+    /*const newSocket = io("http://localhost:3000", {
+      transports: ["websocket"],
+      autoConnect: true,
+    });*/
     setPlayerName(name);
     newSocket?.emit("request_to_play", { name: name });
     setSocket(newSocket);
