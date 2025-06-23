@@ -11,7 +11,7 @@ const corsOptions = {
   methods: ["GET", "POST"],
 };
 
-const corsOptions = {
+/*const corsOptions = {
   origin: "http://localhost:5174/",
   methods: ["GET", "POST"],
 };*/
